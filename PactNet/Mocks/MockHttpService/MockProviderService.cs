@@ -31,7 +31,7 @@ namespace PactNet.Mocks.MockHttpService
             int port,
             bool enableSsl,
             Func<string, HttpClient> httpClientFactory,
-            IHttpMethodMapper httpMethodMapper)
+            IHttpMethodMapper httpMethodMapper)	
         {
             _hostFactory = hostFactory;
             BaseUri = String.Format("{0}://localhost:{1}", enableSsl ? "https" : "http", port);

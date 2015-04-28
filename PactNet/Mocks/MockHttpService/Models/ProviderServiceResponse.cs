@@ -3,15 +3,18 @@ using Newtonsoft.Json;
 
 namespace PactNet.Mocks.MockHttpService.Models
 {
-    public class ProviderServiceResponse : IHttpMessage
-    {
-        [JsonProperty(PropertyName = "status")]
-        public int Status { get; set; }
+	public class ProviderServiceResponse : IHttpMessage
+	{
+		[JsonProperty(PropertyName = "status")]
+		public int Status { get; set; }
 
-        [JsonProperty(PropertyName = "headers")]
-        public IDictionary<string, string> Headers { get; set; }
+		[JsonProperty(PropertyName = "headers")]
+		public IDictionary<string, string> Headers { get; set; }
 
-        [JsonProperty(PropertyName = "body")]
-        public dynamic Body { get; set; }
-    }
+		[JsonProperty(PropertyName = "body")]
+		public dynamic Body { get; set; }
+
+		[JsonProperty(PropertyName = "requestMatchingRules")]
+		public IDictionary<string, IDictionary<string, string>> RequestMatchingRules { get; set; }
+	}
 }
