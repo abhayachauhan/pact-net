@@ -13,8 +13,5 @@ namespace PactNet.Mocks.MockHttpService.Models
 
 		[JsonProperty(PropertyName = "body")]
 		public dynamic Body { get; set; }
-
-		[JsonProperty(PropertyName = "requestMatchingRules")]
-		public IDictionary<string, IDictionary<string, string>> RequestMatchingRules { get; set; }
 	}
 }

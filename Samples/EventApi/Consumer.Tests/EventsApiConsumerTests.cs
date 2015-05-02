@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using PactNet.Mocks.MockHttpService;
@@ -41,10 +42,6 @@ namespace Consumer.Tests
                     {
                         { "Content-Type", "application/json; charset=utf-8" }
                     },
-					RequestMatchingRules = new Dictionary<string, IDictionary<string, string>>
-					{
-						{ "$.body[0].eventId", new Dictionary<string, string> { { "match", "true" } } }
-					},
 					Body = new[]
                     {
                         new 
@@ -100,7 +97,7 @@ namespace Consumer.Tests
                     },
 					Body = new
 					{
-						eventId,
+						eventId = Matcher.Type(TypeMatcher.DataType.String),
 						timestamp = dateTime.ToString("O"),
 						eventType = "DetailsView"
 					}
@@ -232,6 +229,48 @@ namespace Consumer.Tests
 			Assert.Equal(eventType, result.First().EventType);
 
 			_mockProviderService.VerifyInteractions();
+		}
+	}
+
+	public class TypeMatcher : Matcher
+	{
+		public enum DataType
+		{
+			String,
+			Boolean,
+			Number,
+			Object,
+			Array
+		};
+
+		private DataType _type { get; set; }
+
+		public TypeMatcher(DataType type)
+		{
+			_type = type;
+		}
+	}
+
+	public class RegExMatcher : Matcher
+	{
+		private string _regEx;
+
+		public RegExMatcher(string regEx)
+		{
+			_regEx = regEx;
+		}
+	}
+
+	public abstract class Matcher
+	{
+		public static TypeMatcher Type(TypeMatcher.DataType type)
+		{
+			return new TypeMatcher(type);
+		}
+
+		public static RegExMatcher RegEx()
+		{
+			return new RegExMatcher();
 		}
 	}
 }
