@@ -2,43 +2,27 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using Nancy.Helpers;
-using PactNet.Reporters;
+using PactNet.Comparers;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
-    public class HttpQueryStringComparer : IHttpQueryStringComparer
+    internal class HttpQueryStringComparer : IHttpQueryStringComparer
     {
-        private readonly string _messagePrefix;
-        private readonly IReporter _reporter;
-
-        public HttpQueryStringComparer(string messagePrefix, IReporter reporter)
-        {
-            _messagePrefix = messagePrefix;
-            _reporter = reporter;
-        }
-
-        public void Compare(string expected, string actual)
+        public ComparisonResult Compare(string expected, string actual)
         {
             if (String.IsNullOrEmpty(expected) && String.IsNullOrEmpty(actual))
             {
-                return;
+                return new ComparisonResult("has no query strings");
             }
 
             var normalisedExpectedQuery = NormaliseUrlEncodingAndTrimTrailingAmpersand(expected);
             var normalisedActualQuery = NormaliseUrlEncodingAndTrimTrailingAmpersand(actual);
+            var result = new ComparisonResult("has query {0}", normalisedExpectedQuery ?? "null");
 
-            _reporter.ReportInfo(String.Format("{0} has query set to {1}", _messagePrefix, normalisedExpectedQuery ?? "null"));
-
-            if (expected == null)
+            if (expected == null || actual == null)
             {
-                _reporter.ReportError(actual: actual);
-                return;
-            }
-
-            if (actual == null)
-            {
-                _reporter.ReportError(expected: expected);
-                return;
+                result.RecordFailure(new DiffComparisonFailure(expected, actual));
+                return result;
             }
 
             var expectedQueryItems = HttpUtility.ParseQueryString(normalisedExpectedQuery);
@@ -46,16 +30,16 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
             if (expectedQueryItems.Count != actualQueryItems.Count)
             {
-                _reporter.ReportError(expected: normalisedExpectedQuery, actual: normalisedActualQuery);
-                return;
+                result.RecordFailure(new DiffComparisonFailure(normalisedExpectedQuery, normalisedActualQuery));
+                return result;
             }
 
             foreach (string expectedKey in expectedQueryItems)
             {
                 if (!actualQueryItems.AllKeys.Contains(expectedKey))
                 {
-                    _reporter.ReportError(expected: normalisedExpectedQuery, actual: normalisedActualQuery);
-                    return;
+                    result.RecordFailure(new DiffComparisonFailure(normalisedExpectedQuery, normalisedActualQuery));
+                    return result;
                 }
 
                 var expectedValue = expectedQueryItems[expectedKey];
@@ -63,10 +47,12 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
                 if (expectedValue != actualValue)
                 {
-                    _reporter.ReportError(expected: normalisedExpectedQuery, actual: normalisedActualQuery);
-                    return;
+                    result.RecordFailure(new DiffComparisonFailure(normalisedExpectedQuery, normalisedActualQuery));
+                    return result;
                 }
             }
+
+            return result;
         }
 
         private string NormaliseUrlEncodingAndTrimTrailingAmpersand(string query)

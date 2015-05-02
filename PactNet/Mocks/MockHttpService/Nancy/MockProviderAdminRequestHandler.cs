@@ -6,34 +6,44 @@ using System.Linq;
 using System.Text;
 using Nancy;
 using Newtonsoft.Json;
+using PactNet.Comparers;
 using PactNet.Configuration.Json;
+using PactNet.Logging;
 using PactNet.Mocks.MockHttpService.Models;
 using PactNet.Models;
-using PactNet.Reporters;
 
 namespace PactNet.Mocks.MockHttpService.Nancy
 {
-    public class MockProviderAdminRequestHandler : IMockProviderAdminRequestHandler
+    internal class MockProviderAdminRequestHandler : IMockProviderAdminRequestHandler
     {
         private readonly IMockProviderRepository _mockProviderRepository;
-        private readonly IReporter _reporter;
         private readonly IFileSystem _fileSystem;
         private readonly string _pactFileDirectory;
+        private readonly ILog _log;
 
         public MockProviderAdminRequestHandler(
             IMockProviderRepository mockProviderRepository,
-            IReporter reporter,
             IFileSystem fileSystem,
-            PactFileInfo pactFileInfo)
+            PactFileInfo pactFileInfo,
+            ILog log)
         {
             _mockProviderRepository = mockProviderRepository;
-            _reporter = reporter;
             _fileSystem = fileSystem;
             _pactFileDirectory = pactFileInfo.Directory ?? Constants.DefaultPactFileDirectory;
+            _log = log;
         }
 
         public Response Handle(NancyContext context)
         {
+            //The first admin request with test context, we should log the context
+            if (String.IsNullOrEmpty(_mockProviderRepository.TestContext) &&
+                context.Request.Headers != null &&
+                context.Request.Headers.Any(x => x.Key == Constants.AdministrativeRequestTestContextHeaderKey))
+            {
+                _mockProviderRepository.TestContext = context.Request.Headers.Single(x => x.Key == Constants.AdministrativeRequestTestContextHeaderKey).Value.Single();
+                _log.InfoFormat("Test context {0}", _mockProviderRepository.TestContext);
+            }
+
             if (context.Request.Method.Equals("DELETE", StringComparison.InvariantCultureIgnoreCase) &&
                 context.Request.Path == Constants.InteractionsPath)
             {
@@ -64,8 +74,10 @@ namespace PactNet.Mocks.MockHttpService.Nancy
 
         private Response HandleDeleteInteractionsRequest()
         {
-            _mockProviderRepository.ClearHandledRequests();
-            _mockProviderRepository.ClearTestScopedInteractions();
+            _mockProviderRepository.ClearTestScopedState();
+
+            _log.Info("Cleared interactions");
+            
             return GenerateResponse(HttpStatusCode.OK, "Deleted interactions");
         }
 
@@ -73,52 +85,91 @@ namespace PactNet.Mocks.MockHttpService.Nancy
         {
             var interactionJson = ReadContent(context.Request.Body);
             var interaction = JsonConvert.DeserializeObject<ProviderServiceInteraction>(interactionJson);
-
             _mockProviderRepository.AddInteraction(interaction);
+
+            _log.InfoFormat("Registered expected interaction {0} {1}", interaction.Request.Method.ToString().ToUpperInvariant(), interaction.Request.Path);
+            _log.Debug(JsonConvert.SerializeObject(interaction, JsonConfig.PactFileSerializerSettings));
 
             return GenerateResponse(HttpStatusCode.OK, "Added interaction");
         }
 
         private Response HandleGetInteractionsVerificationRequest()
         {
-            //Check all registered interactions have been used once and only once
             var registeredInteractions = _mockProviderRepository.TestScopedInteractions;
 
+            var comparisonResult = new ComparisonResult();
+
+            //Check all registered interactions have been used once and only once
             if (registeredInteractions.Any())
             {
                 foreach (var registeredInteraction in registeredInteractions)
                 {
-                    var interactionUsages = _mockProviderRepository.HandledRequests.Where(x => x.MatchedInteraction == registeredInteraction).ToList();
+                    var interactionUsages = _mockProviderRepository.HandledRequests.Where(x => x.MatchedInteraction != null && x.MatchedInteraction == registeredInteraction).ToList();
 
                     if (interactionUsages == null || !interactionUsages.Any())
                     {
-                        _reporter.ReportError(String.Format("Registered mock interaction with description '{0}' and provider state '{1}', was not used by the test.", registeredInteraction.Description, registeredInteraction.ProviderState));
+                        comparisonResult.RecordFailure(
+                            new MissingInteractionComparisonFailure(registeredInteraction));
                     }
                     else if (interactionUsages.Count() > 1)
                     {
-                        _reporter.ReportError(String.Format("Registered mock interaction with description '{0}' and provider state '{1}', was used {2} time/s by the test.", registeredInteraction.Description, registeredInteraction.ProviderState, interactionUsages.Count()));
+                        comparisonResult.RecordFailure(new ErrorMessageComparisonFailure(String.Format("The interaction with description '{0}' and provider state '{1}', was used {2} time/s by the test.", registeredInteraction.Description, registeredInteraction.ProviderState, interactionUsages.Count())));
                     }
                 }
             }
-            else
+
+            //Have we seen any request that has not be registered by the test?
+            if (_mockProviderRepository.HandledRequests != null && _mockProviderRepository.HandledRequests.Any(x => x.MatchedInteraction == null))
             {
-                if (_mockProviderRepository.HandledRequests != null && _mockProviderRepository.HandledRequests.Any())
+                foreach (var handledRequest in _mockProviderRepository.HandledRequests.Where(x => x.MatchedInteraction == null))
                 {
-                    _reporter.ReportError("No mock interactions were registered, however the mock provider service was called.");
+                    comparisonResult.RecordFailure(
+                        new UnexpectedRequestComparisonFailure(handledRequest.ActualRequest));
                 }
             }
 
-            try
+            //Have we seen any requests when no interactions were registered by the test?
+            if (!registeredInteractions.Any() && 
+                _mockProviderRepository.HandledRequests != null && 
+                _mockProviderRepository.HandledRequests.Any())
             {
-                _reporter.ThrowIfAnyErrors();
-            }
-            catch (Exception ex)
-            {
-                _reporter.ClearErrors();
-                return GenerateResponse(HttpStatusCode.InternalServerError, ex.Message);
+                comparisonResult.RecordFailure(new ErrorMessageComparisonFailure("No interactions were registered, however the mock provider service was called."));
             }
 
-            return GenerateResponse(HttpStatusCode.OK, "Interactions matched");
+            if (!comparisonResult.HasFailure)
+            {
+                _log.Info("Verifying - interactions matched");
+
+                return GenerateResponse(HttpStatusCode.OK, "Interactions matched");
+            }
+
+            _log.Error("Verifying - actual interactions do not match expected interactions");
+
+            if (comparisonResult.Failures.Any(x => x is MissingInteractionComparisonFailure))
+            {
+                _log.Error("Missing requests: " + String.Join(", ", 
+                    comparisonResult.Failures
+                        .Where(x => x is MissingInteractionComparisonFailure)
+                        .Cast<MissingInteractionComparisonFailure>()
+                        .Select(x => x.RequestDescription)));
+            }
+
+            if (comparisonResult.Failures.Any(x => x is UnexpectedRequestComparisonFailure))
+            {
+                _log.Error("Unexpected requests: " + String.Join(", ", 
+                    comparisonResult.Failures
+                        .Where(x => x is UnexpectedRequestComparisonFailure)
+                        .Cast<UnexpectedRequestComparisonFailure>()
+                        .Select(x => x.RequestDescription)));
+            }
+
+            foreach (var failureResult in comparisonResult.Failures.Where(failureResult => !(failureResult is MissingInteractionComparisonFailure) && !(failureResult is UnexpectedRequestComparisonFailure)))
+            {
+                _log.Error(failureResult.Result);
+            }
+
+            var failure = comparisonResult.Failures.First();
+            return GenerateResponse(HttpStatusCode.InternalServerError, failure.Result);
         }
 
         private Response HandlePostPactRequest(NancyContext context)

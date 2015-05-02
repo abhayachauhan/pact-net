@@ -1,10 +1,14 @@
-﻿namespace PactNet.Reporters
+﻿using PactNet.Comparers;
+
+namespace PactNet.Reporters
 {
-    public interface IReporter
+    internal interface IReporter
     {
         void ReportInfo(string infoMessage);
-        void ReportError(string errorMessage = null, object expected = null, object actual = null);
-        void ThrowIfAnyErrors();
-        void ClearErrors();
+        void ReportSummary(ComparisonResult comparisonResult);
+        void ReportFailureReasons(ComparisonResult comparisonResult);
+
+        void Indent();
+        void ResetIndentation();
     }
 }

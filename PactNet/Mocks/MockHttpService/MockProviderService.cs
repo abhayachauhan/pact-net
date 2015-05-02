@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -39,9 +40,9 @@ namespace PactNet.Mocks.MockHttpService
             _httpMethodMapper = httpMethodMapper;
         }
 
-        public MockProviderService(int port, bool enableSsl, string pactFileDirectory = null)
+        public MockProviderService(int port, bool enableSsl, string providerName, string pactFileDirectory = null)
             : this(
-            baseUri => new NancyHttpHost(baseUri, pactFileDirectory), 
+            baseUri => new NancyHttpHost(baseUri, pactFileDirectory, providerName), 
             port,
             enableSsl,
             baseUri => new HttpClient { BaseAddress = new Uri(baseUri) },
@@ -143,7 +144,7 @@ namespace PactNet.Mocks.MockHttpService
             }
         }
 
-        public void SendAdminHttpRequest<T>(HttpVerb method, string path, T requestContent) where T : class
+        public void SendAdminHttpRequest<T>(HttpVerb method, string path, T requestContent, IDictionary<string, string> headers = null) where T : class
         {
             if (_host == null)
             {
@@ -154,6 +155,14 @@ namespace PactNet.Mocks.MockHttpService
 
             var request = new HttpRequestMessage(_httpMethodMapper.Convert(method), path);
             request.Headers.Add(Constants.AdministrativeRequestHeaderKey, "true");
+
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                {
+                    request.Headers.Add(header.Key, header.Value);
+                }
+            }
 
             if (requestContent != null)
             {
@@ -203,9 +212,41 @@ namespace PactNet.Mocks.MockHttpService
                 Response = _response
             };
 
-            SendAdminHttpRequest(HttpVerb.Post, Constants.InteractionsPath, interaction);
+            var testContext = BuildTestContext();
+
+            SendAdminHttpRequest(HttpVerb.Post, Constants.InteractionsPath, interaction, new Dictionary<string, string> { { Constants.AdministrativeRequestTestContextHeaderKey, testContext } });
 
             ClearTrasientState();
+        }
+
+        private static string BuildTestContext()
+        {
+            var stack = new StackTrace(true);
+            var stackFrames = stack.GetFrames() ?? new StackFrame[0];
+
+            var relevantStackFrameSummaries = new List<string>();
+
+            foreach (var stackFrame in stackFrames)
+            {
+                var type = stackFrame.GetMethod().ReflectedType;
+
+                if (type == null || 
+                    (type.Assembly.GetName().Name.StartsWith("PactNet", StringComparison.CurrentCultureIgnoreCase) &&
+                    !type.Assembly.GetName().Name.Equals("PactNet.Tests", StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    continue;
+                }
+
+                //Don't care about any mscorlib frames down
+                if (type.Assembly.GetName().Name.Equals("mscorlib", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    break;
+                }
+
+                relevantStackFrameSummaries.Add(String.Format("{0}.{1}", type.Name, stackFrame.GetMethod().Name));
+            }
+
+            return String.Join(" ", relevantStackFrameSummaries);
         }
 
         private void SendAdminHttpRequest(HttpVerb method, string path)

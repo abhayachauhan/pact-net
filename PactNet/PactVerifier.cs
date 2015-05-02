@@ -11,7 +11,7 @@ using PactNet.Reporters;
 
 namespace PactNet
 {
-    public class PactVerifier : IPactVerifier, IProviderStates
+    public class PactVerifier : IPactVerifier
     {
         private readonly IFileSystem _fileSystem;
         private readonly Func<IHttpRequestSender, IProviderServiceValidator> _providerServiceValidatorFactory;
@@ -23,47 +23,53 @@ namespace PactNet
         public ProviderStates ProviderStates { get; private set; }
         public string PactFileUri { get; private set; }
 
-        internal PactVerifier(IFileSystem fileSystem,
+        internal PactVerifier(
+            Action setUp, 
+            Action tearDown,
+            IFileSystem fileSystem,
             Func<IHttpRequestSender, IProviderServiceValidator> providerServiceValidatorFactory, 
             HttpClient httpClient)
         {
             _fileSystem = fileSystem;
             _providerServiceValidatorFactory = providerServiceValidatorFactory;
             _httpClient = httpClient;
+
+            ProviderStates = new ProviderStates(setUp, tearDown);
         }
 
-        public PactVerifier() : this(
+        /// <summary>
+        /// Define any set up and tear down state that is required when running the interaction verify.
+        /// We strongly recommend that any set up state is cleared using the tear down. This includes any state and IoC container overrides you may be doing.
+        /// </summary>
+        /// <param name="consumerName">The name of the consumer being verified.</param>
+        /// <param name="setUp">A set up action that will be run before each interaction verify. If no action is required please use an empty lambda () => {}.</param>
+        /// <param name="tearDown">A tear down action that will be run after each interaction verify. If no action is required please use an empty lambda () => {}.</param>
+        public PactVerifier(Action setUp, Action tearDown) : this(
+            setUp, 
+            tearDown,
             new FileSystem(),
             httpRequestSender => new ProviderServiceValidator(httpRequestSender, new Reporter()),
             new HttpClient())
         {
         }
 
-        public IProviderStates ProviderStatesFor(string consumerName, Action setUp = null, Action tearDown = null)
+        [Obsolete("Please supply this information in the constructor. Will be removed in the next major version.")]
+        public IPactVerifier ProviderStatesFor(string consumerName, Action setUp = null, Action tearDown = null)
         {
-            if (String.IsNullOrEmpty(consumerName))
-            {
-                throw new ArgumentException("Please supply a non null or empty consumerName");
-            }
-
-            if (!String.IsNullOrEmpty(ConsumerName) && !ConsumerName.Equals(consumerName))
-            {
-                throw new ArgumentException("Please supply the same consumerName that was defined when calling the HonoursPactWith method");
-            }
-
-            ConsumerName = consumerName;
             ProviderStates = new ProviderStates(setUp, tearDown);
 
             return this;
         }
 
-        public IProviderStates ProviderState(string providerState, Action setUp = null, Action tearDown = null)
+        /// <summary>
+        /// Define a set up and/or tear down action for a specific state specified by the consumer.
+        /// This is where you should set up test data, so that you can fulfil the contract outlined by a consumer.
+        /// </summary>
+        /// <param name="providerState">The name of the provider state as defined by the consumer interaction, which lives in the Pact file.</param>
+        /// <param name="setUp">A set up action that will be run before the interaction verify, if the provider has specified it in the interaction. If no action is required please use an empty lambda () => {}.</param>
+        /// <param name="tearDown">A tear down action that will be run after the interaction verify, if the provider has specified it in the interaction. If no action is required please use an empty lambda () => {}.</param>
+        public IPactVerifier ProviderState(string providerState, Action setUp = null, Action tearDown = null)
         {
-            if (ProviderStates == null)
-            {
-                throw new InvalidOperationException("Please intitialise the provider states by first calling the ProviderStatesFor method");
-            }
-
             if (String.IsNullOrEmpty(providerState))
             {
                 throw new ArgumentException("Please supply a non null or empty providerState");
@@ -80,6 +86,11 @@ namespace PactNet
             if (String.IsNullOrEmpty(providerName))
             {
                 throw new ArgumentException("Please supply a non null or empty providerName");
+            }
+
+            if (!String.IsNullOrEmpty(ProviderName))
+            {
+                throw new ArgumentException("ProviderName has already been supplied, please instantiate a new PactVerifier if you want to perform verification for a different provider");
             }
 
             if (httpClient == null)
@@ -100,6 +111,11 @@ namespace PactNet
                 throw new ArgumentException("Please supply a non null or empty providerName");
             }
 
+            if (!String.IsNullOrEmpty(ProviderName))
+            {
+                throw new ArgumentException("ProviderName has already been supplied, please instantiate a new PactVerifier if you want to perform verification for a different provider");
+            }
+
             if (httpRequestSender == null)
             {
                 throw new ArgumentException("Please supply a non null httpRequestSenderFunc");
@@ -118,9 +134,9 @@ namespace PactNet
                 throw new ArgumentException("Please supply a non null or empty consumerName");
             }
 
-            if (!String.IsNullOrEmpty(ConsumerName) && !ConsumerName.Equals(consumerName))
+            if (!String.IsNullOrEmpty(ConsumerName))
             {
-                throw new ArgumentException("Please supply the same consumerName that was defined when calling the ProviderStatesFor method");
+                throw new ArgumentException("ConsumerName has already been supplied, please instantiate a new PactVerifier if you want to perform verification for a different consumer");
             }
 
             ConsumerName = consumerName;

@@ -1,7 +1,7 @@
 ﻿namespace PactNet.Comparers
 {
-    public interface IComparer<in T>
+    internal interface IComparer<in T>
     {
-        void Compare(T expected, T actual);
+        ComparisonResult Compare(T expected, T actual);
     }
 }

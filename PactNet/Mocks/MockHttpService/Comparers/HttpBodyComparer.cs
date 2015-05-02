@@ -1,35 +1,27 @@
 ﻿using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PactNet.Reporters;
+using PactNet.Comparers;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
-    public class HttpBodyComparer : IHttpBodyComparer
+    internal class HttpBodyComparer : IHttpBodyComparer
     {
-        private readonly string _messagePrefix;
-        private readonly IReporter _reporter;
-
-        public HttpBodyComparer(string messagePrefix, IReporter reporter)
-        {
-            _messagePrefix = messagePrefix;
-            _reporter = reporter;
-        }
-
         //TODO: Remove boolean and add "matching" functionality
-        public void Validate(dynamic expected, dynamic actual, bool useStrict = false)
+        public ComparisonResult Compare(dynamic expected, dynamic actual, bool useStrict = false)
         {
+            var result = new ComparisonResult("has a matching body");
+
             if (expected == null)
             {
-                return;
+                return result;
             }
 
             if (expected != null && actual == null)
             {
-                _reporter.ReportError("Body is null");
-                return;
+                result.RecordFailure(new ErrorMessageComparisonFailure("Actual Body is null"));
+                return result;
             }
-
 
             //TODO: Maybe look at changing these to JToken.FromObject(...)
             string expectedJson = JsonConvert.SerializeObject(expected);
@@ -41,16 +33,17 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             {
                 if (!JToken.DeepEquals(expectedToken, actualToken))
                 {
-                    _reporter.ReportError(expected: expectedToken, actual: actualToken);
+                    result.RecordFailure(new DiffComparisonFailure(expectedToken, actualToken));
                 }
-                return;
+                return result;
             }
 
-            AssertPropertyValuesMatch(expectedToken, actualToken);
+            AssertPropertyValuesMatch(expectedToken, actualToken, result);
+
+            return result;
         }
 
-       
-        private bool AssertPropertyValuesMatch(JToken httpBody1, JToken httpBody2)
+        private bool AssertPropertyValuesMatch(JToken httpBody1, JToken httpBody2, ComparisonResult result)
         {
             switch (httpBody1.Type)
             {
@@ -58,7 +51,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     {
                         if (httpBody1.Count() != httpBody2.Count())
                         {
-                            _reporter.ReportError(expected: httpBody1.Root, actual: httpBody2.Root);
+                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
                             return false;
                         }
 
@@ -66,7 +59,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                         {
                             if (httpBody2.Count() > i)
                             {
-                                var isMatch = AssertPropertyValuesMatch(httpBody1[i], httpBody2[i]);
+                                var isMatch = AssertPropertyValuesMatch(httpBody1[i], httpBody2[i], result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -83,7 +76,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
                             if (item2 != null)
                             {
-                                var isMatch = AssertPropertyValuesMatch(item1, item2);
+                                var isMatch = AssertPropertyValuesMatch(item1, item2, result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -91,7 +84,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                             }
                             else
                             {
-                                _reporter.ReportError(expected: httpBody1.Root, actual: httpBody2.Root);
+                                result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
                                 return false;
                             }
                         }
@@ -109,11 +102,11 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
                         if (httpBody2Item != null && httpBody1Item != null)
                         {
-                            AssertPropertyValuesMatch(httpBody1Item, httpBody2Item);
+                            AssertPropertyValuesMatch(httpBody1Item, httpBody2Item, result);
                         }
                         else
                         {
-                            _reporter.ReportError(expected: httpBody1.Root, actual: httpBody2.Root);
+                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
                             return false;
                         }
                         break;
@@ -123,7 +116,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     {
                         if (!httpBody1.Equals(httpBody2))
                         {
-                            _reporter.ReportError(expected: httpBody1.Root, actual: httpBody2.Root);
+                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
                             return false;
                         }
                         break;
@@ -132,7 +125,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     {
                         if (!JToken.DeepEquals(httpBody1, httpBody2))
                         {
-                            _reporter.ReportError(expected: httpBody1.Root, actual: httpBody2.Root);
+                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
                             return false;
                         }
                         break;

@@ -9,16 +9,16 @@ namespace PactNet
     {
         public string ConsumerName { get; private set; }
         public string ProviderName { get; private set; }
-        private readonly Func<int, bool, IMockProviderService> _mockProviderServiceFactory;
+        private readonly Func<int, bool, string, IMockProviderService> _mockProviderServiceFactory;
         private IMockProviderService _mockProviderService;
 
-        internal PactBuilder(Func<int, bool, IMockProviderService> mockProviderServiceFactory)
+        internal PactBuilder(Func<int, bool, string, IMockProviderService> mockProviderServiceFactory)
         {
             _mockProviderServiceFactory = mockProviderServiceFactory;
         }
 
         public PactBuilder()
-            : this((port, enableSsl) => new MockProviderService(port, enableSsl))
+            : this((port, enableSsl, providerName) => new MockProviderService(port, enableSsl, providerName))
         {
         }
 
@@ -53,7 +53,7 @@ namespace PactNet
                 _mockProviderService.Stop();
             }
 
-            _mockProviderService = _mockProviderServiceFactory(port, enableSsl);
+            _mockProviderService = _mockProviderServiceFactory(port, enableSsl, ProviderName);
 
             _mockProviderService.Start();
 
@@ -85,8 +85,8 @@ namespace PactNet
 
             var pactDetails = new PactDetails
             {
-                Provider = new Party { Name = ProviderName },
-                Consumer = new Party { Name = ConsumerName }
+                Provider = new Pacticipant { Name = ProviderName },
+                Consumer = new Pacticipant { Name = ConsumerName }
             };
 
             _mockProviderService.SendAdminHttpRequest(HttpVerb.Post, Constants.PactPath, pactDetails);

@@ -23,7 +23,7 @@ We have also written some `//NOTE:` comments inline in the code to help explain 
 
 ### Installing
 
-Via Nuget with [Install-Package PactNet -Pre](http://www.nuget.org/packages/PactNet)
+Via Nuget with [Install-Package PactNet](http://www.nuget.org/packages/PactNet)
 
 ### Service Consumer
 
@@ -199,10 +199,9 @@ public class SomethingApiTests
 	public void EnsureSomethingApiHonoursPactWithConsumer()
 	{
 		//Arrange
-		var pactVerifier = new PactVerifier();
+		IPactVerifier pactVerifier = new PactVerifier(() => {}, () => {}); //NOTE: You can supply setUp and tearDown, which will run before starting and after completing each individual verification.
 		
 		pactVerifier
-			.ProviderStatesFor("Consumer") //NOTE: You can supply setUp and tearDown, which will run before starting and after completing the verifications.
 			.ProviderState("There is a something with id 'tester'",
 				setUp: AddTesterIfItDoesntExist); //NOTE: We also have tearDown
 
@@ -235,10 +234,9 @@ public class SomethingApiTests
 	public void EnsureSomethingApiHonoursPactWithConsumer()
 	{
 		//Arrange
-		var pactVerifier = new PactVerifier();
+		IPactVerifier pactVerifier = new PactVerifier(() => {}, () => {}); //NOTE: You can supply setUp and tearDown, which will run before starting and after completing each individual verification.
 		
 		pactVerifier
-			.ProviderStatesFor("Consumer") //NOTE: You can supply setUp and tearDown, which will run before starting and after completing the verifications.
 			.ProviderState("There is a something with id 'tester'",
 				setUp: AddTesterIfItDoesntExist); //NOTE: We also have tearDown
 

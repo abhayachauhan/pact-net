@@ -1,58 +1,58 @@
 ﻿using System.Linq;
+using PactNet.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
-using PactNet.Reporters;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
-    public class ProviderServiceRequestComparer : IProviderServiceRequestComparer
+    internal class ProviderServiceRequestComparer : IProviderServiceRequestComparer
     {
         private readonly IHttpMethodComparer _httpMethodComparer;
         private readonly IHttpPathComparer _httpPathComparer;
         private readonly IHttpQueryStringComparer _httpQueryStringComparer;
         private readonly IHttpHeaderComparer _httpHeaderComparer;
         private readonly IHttpBodyComparer _httpBodyComparer;
-        private readonly IReporter _reporter;
 
-        private const string MessagePrefix = "\t- Request";
-
-        public ProviderServiceRequestComparer(IReporter reporter)
+        public ProviderServiceRequestComparer()
         {
-            _reporter = reporter;
-            _httpMethodComparer = new HttpMethodComparer(MessagePrefix, _reporter);
-            _httpPathComparer = new HttpPathComparer(MessagePrefix, _reporter);
-            _httpQueryStringComparer = new HttpQueryStringComparer(MessagePrefix, _reporter);
-            _httpHeaderComparer = new HttpHeaderComparer(MessagePrefix, _reporter);
-            _httpBodyComparer = new HttpBodyComparer(MessagePrefix, _reporter);
+            _httpMethodComparer = new HttpMethodComparer();
+            _httpPathComparer = new HttpPathComparer();
+            _httpQueryStringComparer = new HttpQueryStringComparer();
+            _httpHeaderComparer = new HttpHeaderComparer();
+            _httpBodyComparer = new HttpBodyComparer();
         }
 
-        public void Compare(ProviderServiceRequest expected, ProviderServiceRequest actual)
+        public ComparisonResult Compare(ProviderServiceRequest expected, ProviderServiceRequest actual)
         {
+            var result = new ComparisonResult("sends a request which");
+
             if (expected == null)
             {
-                _reporter.ReportError("Expected request cannot be null");
-                return;
+                result.RecordFailure(new ErrorMessageComparisonFailure("Expected request cannot be null"));
+                return result;
             }
 
-            _httpMethodComparer.Compare(expected.Method, actual.Method);
+            var methodResult = _httpMethodComparer.Compare(expected.Method, actual.Method);
+            result.AddChildResult(methodResult);
 
-            _httpPathComparer.Compare(expected.Path, actual.Path);
+            var pathResult = _httpPathComparer.Compare(expected.Path, actual.Path);
+            result.AddChildResult(pathResult);
 
-            _httpQueryStringComparer.Compare(expected.Query, actual.Query);
+            var queryResult = _httpQueryStringComparer.Compare(expected.Query, actual.Query);
+            result.AddChildResult(queryResult);
 
             if (expected.Headers != null && expected.Headers.Any())
             {
-                if (actual.Headers == null)
-                {
-                    _reporter.ReportError("Headers are null");
-                }
-
-                _httpHeaderComparer.Compare(expected.Headers, actual.Headers);
+                var headerResult = _httpHeaderComparer.Compare(expected.Headers, actual.Headers);
+                result.AddChildResult(headerResult);
             }
 
             if (expected.Body != null)
             {
-                _httpBodyComparer.Validate(expected.Body, actual.Body, true);
+                var bodyResult = _httpBodyComparer.Compare(expected.Body, actual.Body, true);
+                result.AddChildResult(bodyResult);
             }
+
+            return result;
         }
     }
 }

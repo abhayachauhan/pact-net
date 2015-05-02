@@ -23,76 +23,19 @@ namespace PactNet.Tests
         private IProviderServiceValidator _mockProviderServiceValidator;
         private FakeHttpMessageHandler _fakeHttpMessageHandler;
 
-        public IPactVerifier GetSubject()
+        private IPactVerifier GetSubject()
         {
             _providerServiceValidatorFactoryCallInfo = null;
             _mockFileSystem = Substitute.For<IFileSystem>();
             _mockProviderServiceValidator = Substitute.For<IProviderServiceValidator>();
             _fakeHttpMessageHandler = new FakeHttpMessageHandler();
 
-            return new PactVerifier(_mockFileSystem, httpRequestSender =>
+            return new PactVerifier(() => {}, () => {}, _mockFileSystem, httpRequestSender =>
             {
                 _providerServiceValidatorFactoryCallInfo = new Tuple<bool, IHttpRequestSender>(true, httpRequestSender);
                 
                 return _mockProviderServiceValidator;
             }, new HttpClient(_fakeHttpMessageHandler));
-        }
-
-        [Fact]
-        public void ProviderStates_WhenProviderStatesForHasNotBeenCalled_ReturnsNull()
-        {
-            var pactVerifier = (PactVerifier)GetSubject();
-
-            var providerStates = pactVerifier.ProviderStates;
-
-            Assert.Null(providerStates);
-        }
-
-        [Fact]
-        public void ProviderStatesFor_WhenCalledWithNullConsumerName_ThrowsArgumentException()
-        {
-            var pactVerifier = GetSubject();
-
-            Assert.Throws<ArgumentException>(() => pactVerifier.ProviderStatesFor(null));
-        }
-
-        [Fact]
-        public void ProviderStatesFor_WhenCalledWithEmptyConsumerName_ThrowsArgumentException()
-        {
-            var pactVerifier = GetSubject();
-
-            Assert.Throws<ArgumentException>(() => pactVerifier.ProviderStatesFor(String.Empty));
-        }
-
-        [Fact]
-        public void ProviderStatesFor_WhenCalledWithConsumerName_SetsConsumerName()
-        {
-            const string consumerName = "My Client";
-            var pactVerifier = GetSubject();
-
-            pactVerifier.ProviderStatesFor(consumerName);
-
-            Assert.Equal(consumerName, ((PactVerifier)pactVerifier).ConsumerName);
-        }
-
-        [Fact]
-        public void ProviderStatesFor_WhenConsumerNameHasBeenSetAndSupplyingADifferentConsumerName_ThrowsArgumentException()
-        {
-            var pactVerifier = GetSubject();
-
-            pactVerifier.HonoursPactWith("My Client");
-
-            Assert.Throws<ArgumentException>(() => pactVerifier.ProviderStatesFor("My Client 2"));
-        }
-
-        [Fact]
-        public void ProviderState_WhenCalledBeforeProviderStatesFor_ThrowsInvalidOperationException()
-        {
-            const string providerState = "There is an event with id 1234 in the database";
-
-            var pactVerifier = (PactVerifier)GetSubject();
-
-            Assert.Throws<InvalidOperationException>(() => pactVerifier.ProviderState(providerState));
         }
 
         [Fact]
@@ -104,7 +47,7 @@ namespace PactNet.Tests
 
             var pactVerifier = (PactVerifier)GetSubject();
 
-            pactVerifier.ProviderStatesFor("My Client")
+            pactVerifier
                 .ProviderState(providerState, providerStateSetUpAction, providerStateTearDownAction);
 
             var providerStateItem = pactVerifier.ProviderStates.Find(providerState);
@@ -119,7 +62,7 @@ namespace PactNet.Tests
             var pactVerifier = GetSubject();
 
             Assert.Throws<ArgumentException>(() => 
-                pactVerifier.ProviderStatesFor("My Client")
+                pactVerifier
                 .ProviderState(null));
         }
 
@@ -129,7 +72,7 @@ namespace PactNet.Tests
             var pactVerifier = GetSubject();
 
             Assert.Throws<ArgumentException>(() =>
-                pactVerifier.ProviderStatesFor("My Client")
+                pactVerifier
                 .ProviderState(String.Empty));
         }
 
@@ -147,6 +90,28 @@ namespace PactNet.Tests
             var pactVerifier = GetSubject();
 
             Assert.Throws<ArgumentException>(() => pactVerifier.ServiceProvider(String.Empty, new HttpClient()));
+        }
+
+        [Fact]
+        public void ServiceProvider_WhenCalledWithAnAlreadySetProviderName_ThrowsArgumentException()
+        {
+            const string providerName = "My API";
+            var pactVerifier = GetSubject();
+
+            pactVerifier.ServiceProvider(providerName, new HttpClient());
+
+            Assert.Throws<ArgumentException>(() => pactVerifier.ServiceProvider(providerName, new HttpClient()));
+        }
+
+        [Fact]
+        public void ServiceProviderOverload_WhenCalledWithAnAlreadySetProviderName_ThrowsArgumentException()
+        {
+            const string providerName = "My API";
+            var pactVerifier = GetSubject();
+
+            pactVerifier.ServiceProvider(providerName, request => null);
+
+            Assert.Throws<ArgumentException>(() => pactVerifier.ServiceProvider(providerName, request => null));
         }
 
         [Fact]
@@ -234,6 +199,17 @@ namespace PactNet.Tests
         }
 
         [Fact]
+        public void HonoursPactWith_WhenCalledWithAnAlreadySetConsumerName_ThrowsArgumentException()
+        {
+            const string consumerName = "My Consumer";
+            var pactVerifier = GetSubject();
+
+            pactVerifier.HonoursPactWith(consumerName);
+
+            Assert.Throws<ArgumentException>(() => pactVerifier.HonoursPactWith(consumerName));
+        }
+
+        [Fact]
         public void HonoursPactWith_WhenCalledWithConsumerName_SetsConsumerName()
         {
             const string consumerName = "My Client";
@@ -242,17 +218,6 @@ namespace PactNet.Tests
             pactVerifier.HonoursPactWith(consumerName);
 
             Assert.Equal(consumerName, ((PactVerifier)pactVerifier).ConsumerName);
-        }
-
-        [Fact]
-        public void HonoursPactWith_WhenConsumerNameHasBeenSetAndSupplyingADifferentConsumerName_ThrowsArgumentException()
-        {
-            var pactVerifier = GetSubject();
-
-            pactVerifier.ProviderStatesFor("My Client")
-                .ProviderState("There is an event with id 1234 in the database");
-
-            Assert.Throws<ArgumentException>(() => pactVerifier.HonoursPactWith("My Client 2"));
         }
 
         [Fact]
@@ -452,7 +417,7 @@ namespace PactNet.Tests
 
             _mockFileSystem.File.ReadAllText(pactUri).Returns(pactFileJson);
 
-            pactVerifier.ProviderStatesFor("My client")
+            pactVerifier
                 .ProviderState("My Provider State")
                 .ProviderState("My Provider State 2");
 
@@ -479,7 +444,7 @@ namespace PactNet.Tests
 
             _mockFileSystem.File.ReadAllText(pactUri).Returns(pactFileJson);
 
-            pactVerifier.ProviderStatesFor("My client")
+            pactVerifier
                 .ProviderState("My Provider State")
                 .ProviderState("My Provider State 2");
 
@@ -506,7 +471,7 @@ namespace PactNet.Tests
 
             _mockFileSystem.File.ReadAllText(pactUri).Returns(pactFileJson);
 
-            pactVerifier.ProviderStatesFor("My client")
+            pactVerifier
                 .ProviderState("My Provider State")
                 .ProviderState("My Provider State 2");
 
@@ -534,7 +499,7 @@ namespace PactNet.Tests
 
             _mockFileSystem.File.ReadAllText(pactUri).Returns(pactFileJson);
 
-            pactVerifier.ProviderStatesFor("My client")
+            pactVerifier
                 .ProviderState("My Provider State")
                 .ProviderState("My Provider State 2");
 
@@ -558,7 +523,7 @@ namespace PactNet.Tests
 
             _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns("{}");
 
-            pactVerifier.ProviderStatesFor("My client")
+            pactVerifier
                 .ProviderState("My Provider State")
                 .ProviderState("My Provider State 2");
 

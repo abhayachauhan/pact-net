@@ -1,5 +1,8 @@
-﻿using Microsoft.Owin.Testing;
+﻿using System;
+using Microsoft.Owin.Testing;
 using PactNet;
+using PactNet.Models;
+using Provider.Api.Web.Controllers;
 using Xunit;
 
 namespace Provider.Api.Web.Tests
@@ -10,15 +13,15 @@ namespace Provider.Api.Web.Tests
         public void EnsureEventApiHonoursPactWithConsumer()
         {
             //Arrange
-            var pactVerifier = new PactVerifier();
+            IPactVerifier pactVerifier = new PactVerifier(() => {}, () => {});
 
             pactVerifier
-                .ProviderStatesFor("Consumer")
-                .ProviderState("There are events with ids '45D80D13-D5A2-48D7-8353-CBB4C0EAABF5', '83F9262F-28F1-4703-AB1A-8CFD9E8249C9' and '3E83A96B-2A0C-49B1-9959-26DF23F83AEB'",
+                .ProviderState(
+                    "there are events with ids '45D80D13-D5A2-48D7-8353-CBB4C0EAABF5', '83F9262F-28F1-4703-AB1A-8CFD9E8249C9' and '3E83A96B-2A0C-49B1-9959-26DF23F83AEB'",
                     setUp: InsertEventsIntoDatabase)
-                .ProviderState("There is an event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
+                .ProviderState("there is an event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
                     setUp: InsertEventIntoDatabase)
-                .ProviderState("There is one event with type 'DetailsView'",
+                .ProviderState("there is one event with type 'DetailsView'",
                     setUp: EnsureOneDetailsViewEventExists);
 
             //Act / Assert

@@ -1,98 +1,95 @@
-﻿using NSubstitute;
+﻿using System;
+using System.Linq;
 using PactNet.Mocks.MockHttpService.Comparers;
-using PactNet.Reporters;
 using Xunit;
 
 namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 {
     public class HttpQueryStringComparerTests
     {
-        private IReporter _mockReporter;
-
         private HttpQueryStringComparer GetSubject()
         {
-            _mockReporter = Substitute.For<IReporter>();
-            return new HttpQueryStringComparer("query", _mockReporter);
+            return new HttpQueryStringComparer();
         }
 
         [Fact]
-        public void Compare_WithNullExpectedQuery_ReportErrorIsNotCalledOnTheReporter()
+        public void Compare_WithNullExpectedQuery_NoErrorsAreAddedToTheComparisonResult()
         {
             var comparer = GetSubject();
 
-            comparer.Compare(null, "");
+            var result = comparer.Compare(null, String.Empty);
 
-            _mockReporter.DidNotReceive().ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+            Assert.False(result.HasFailure, "There should not be any errors");
         }
 
         [Fact]
-        public void Compare_WithNullExpectedQueryAndNonNullActualQuery_ReportErrorIsCalledOnTheReporter()
+        public void Compare_WithNullExpectedQueryAndNonNullActualQuery_OneErrorIsAddedToTheComparisonResult()
         {
             const string actualQuery = "test=1234";
             var comparer = GetSubject();
 
-            comparer.Compare(null, actualQuery);
+            var result = comparer.Compare(null, actualQuery);
 
-            _mockReporter.Received(1).ReportError(null, null, actualQuery);
+            Assert.Equal(1, result.Failures.Count());
         }
 
         [Fact]
-        public void Compare_WithNonNullExpectedQueryAndNullActualQuery_ReportErrorIsCalledOnTheReporter()
+        public void Compare_WithNonNullExpectedQueryAndNullActualQuery_OneErrorIsAddedToTheComparisonResult()
         {
             const string expectedQuery = "test=1234";
             var comparer = GetSubject();
 
-            comparer.Compare(expectedQuery, null);
+            var result = comparer.Compare(expectedQuery, null);
 
-            _mockReporter.Received(1).ReportError(null, expectedQuery, null);
+            Assert.Equal(1, result.Failures.Count());
         }
 
         [Fact]
-        public void Compare_WithNonEncodedQueryThatMatch_ReportErrorIsNotCalledOnTheReporter()
+        public void Compare_WithNonEncodedQueryThatMatch_NoErrorsAreAddedToTheComparisonResult()
         {
             const string expected = "test=1234&hello=test";
             const string actual = "test=1234&hello=test";
             var comparer = GetSubject();
 
-            comparer.Compare(expected, actual);
+            var result = comparer.Compare(expected, actual);
 
-            _mockReporter.DidNotReceive().ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+            Assert.False(result.HasFailure, "There should not be any errors");
         }
 
         [Fact]
-        public void Compare_WithNonEncodedQueryThatDontMatch_ReportErrorIsCalledOnTheReporter()
+        public void Compare_WithNonEncodedQueryThatDontMatch_OneErrorIsAddedToTheComparisonResult()
         {
             const string expected = "test=1234&hello=test";
             const string actual = "test=1234&hello=Test";
             var comparer = GetSubject();
 
-            comparer.Compare(expected, actual);
+            var result = comparer.Compare(expected, actual);
 
-            _mockReporter.Received(1).ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+            Assert.Equal(1, result.Failures.Count());
         }
 
         [Fact]
-        public void Compare_WithUrlEncodingCaseInsensitiveMatching_ReportErrorIsNotCalledOnTheReporter()
+        public void Compare_WithUrlEncodingCaseInsensitiveMatching_NoErrorsAreAddedToTheComparisonResult()
         {
             const string expected = "2014-08-31T00%3A00%3A00%2B10%3A00";
             const string actual = "2014-08-31T00%3a00%3a00%2b10%3a00";
             var comparer = GetSubject();
 
-            comparer.Compare(expected, actual);
+            var result = comparer.Compare(expected, actual);
 
-            _mockReporter.DidNotReceive().ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+            Assert.False(result.HasFailure, "There should not be any errors");
         }
 
         [Fact]
-        public void Compare_WithUrlEncodingCaseInsensitiveMatching_ReportErrorIsCalledOnTheReporter()
+        public void Compare_WithUrlEncodingCaseInsensitiveMatching_OneErrorIsAddedToTheComparisonResult()
         {
             const string expected = "dv=chipbeth%3A00%3A00%2B10%3A00";
             const string actual = "dv=ChipBeth%3a00%3a00%2b10%3a00";
             var comparer = GetSubject();
 
-            comparer.Compare(expected, actual);
+            var result = comparer.Compare(expected, actual);
 
-            _mockReporter.Received(1).ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+            Assert.Equal(1, result.Failures.Count());
         }
 
     }

@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using PactNet.Comparers;
 
 namespace PactNet.Reporters
 {
-    public class Reporter : IReporter
+    internal class Reporter : IReporter
     {
         private readonly IReportOutputter _outputter;
-
-        private readonly IList<string> _errors = new List<string>();
-        public IEnumerable<string> Errors
-        {
-            get { return _errors; }
-        }
+        private int _currentTabDepth;
+        private int _failureInfoCount;
+        private int _failureCount;
 
         public Reporter(IReportOutputter outputter)
         {
@@ -26,37 +24,87 @@ namespace PactNet.Reporters
 
         public void ReportInfo(string infoMessage)
         {
-            _outputter.WriteInfo(infoMessage);
+            _outputter.WriteInfo(infoMessage, _currentTabDepth);
         }
 
-        public void ReportError(string errorMessage = null, object expected = null, object actual = null)
+        public void ReportSummary(ComparisonResult comparisonResult)
         {
-            string errorMsg;
-            if (expected != null || actual != null)
+            WriteSummary(comparisonResult);
+        }
+
+        public void ReportFailureReasons(ComparisonResult comparisonResult)
+        {
+            WriteFailureReasons(comparisonResult);
+        }
+
+        public void Indent()
+        {
+            _currentTabDepth++;
+        }
+
+        public void ResetIndentation()
+        {
+            _currentTabDepth = 0;
+        }
+
+        private void WriteSummary(ComparisonResult comparisonResult, int tabDepth = 0)
+        {
+            if (comparisonResult == null)
             {
-                errorMsg = String.Format("{0} Expected: {1}, Actual: {2}", errorMessage, expected ?? "null", actual ?? "null");
+                return;
+            }
+
+            if (comparisonResult.HasFailure)
+            {
+                var failureBuilder = new StringBuilder();
+                var shallowFailureCount = comparisonResult.ShallowFailureCount;
+
+                if (shallowFailureCount > 0)
+                {
+                    failureBuilder.Append(" (FAILED - ");
+                    for (var i = 0; i < shallowFailureCount; i++)
+                    {
+                        failureBuilder.Append(++_failureInfoCount);
+                        if (i < shallowFailureCount - 1)
+                        {
+                            failureBuilder.Append(", ");
+                        }
+                    }
+                    failureBuilder.Append(")");
+                }
+
+                _outputter.WriteError(comparisonResult.Message + failureBuilder,
+                    _currentTabDepth + tabDepth);
             }
             else
             {
-                errorMsg = errorMessage;
+                _outputter.WriteSuccess(comparisonResult.Message,
+                    _currentTabDepth + tabDepth);
             }
 
-            _outputter.WriteError("[Failure] {0}", errorMsg);
-            _errors.Add(errorMsg);
-        }
-
-        public void ThrowIfAnyErrors()
-        {
-            if (_errors.Any())
+            foreach (var childComparisonResult in comparisonResult.ChildResults)
             {
-                //TODO: Take a look at BDDfy and see what they do with regards to showing errors etc
-                throw new PactFailureException(String.Join(", ", _errors));
+                WriteSummary(childComparisonResult, tabDepth + 1);
             }
         }
 
-        public void ClearErrors()
+        private void WriteFailureReasons(ComparisonResult comparisonResult)
         {
-            _errors.Clear();
+            if (comparisonResult == null)
+            {
+                return;
+            }
+
+            if (!comparisonResult.HasFailure)
+            {
+                return;
+            }
+
+            _outputter.WriteInfo(Environment.NewLine + "Failures:");
+            foreach (var failure in comparisonResult.Failures)
+            {
+                _outputter.WriteError(String.Format("{0}{1}) {2}", Environment.NewLine, ++_failureCount, failure.Result));
+            }
         }
     }
 }

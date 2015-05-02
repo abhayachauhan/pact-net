@@ -1,14 +1,14 @@
-﻿using NSubstitute;
+﻿using System.Linq;
+using PactNet.Comparers;
 using PactNet.Mocks.MockHttpService.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
-using PactNet.Reporters;
+using Xunit;
 
 namespace PactNet.Tests.IntegrationTests.Specification.Models
 {
     public class ResponseTestCase : IVerifiable
     {
         private readonly IProviderServiceResponseComparer _responseComparer;
-        private readonly IReporter _reporter;
 
         public bool Match { get; set; }
         public string Comment { get; set; }
@@ -17,21 +17,20 @@ namespace PactNet.Tests.IntegrationTests.Specification.Models
 
         public ResponseTestCase()
         {
-            _reporter = Substitute.For<IReporter>();
-            _responseComparer = new ProviderServiceResponseComparer(_reporter);
+            _responseComparer = new ProviderServiceResponseComparer();
         }
 
         public void Verify()
         {
-            _responseComparer.Compare(Expected, Actual);
+            var result = _responseComparer.Compare(Expected, Actual);
 
             if (Match)
             {
-                _reporter.DidNotReceive().ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+                Assert.False(result.HasFailure, "There should not be any errors");
             }
             else
             {
-                _reporter.Received(1).ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
+                Assert.Equal(1, result.Failures.Count());
             }
         }
     }

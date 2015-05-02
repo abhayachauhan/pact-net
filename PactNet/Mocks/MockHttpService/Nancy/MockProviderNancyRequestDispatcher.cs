@@ -8,7 +8,7 @@ using Nancy.Routing;
 
 namespace PactNet.Mocks.MockHttpService.Nancy
 {
-    public class MockProviderNancyRequestDispatcher : IRequestDispatcher
+    internal class MockProviderNancyRequestDispatcher : IRequestDispatcher
     {
         private readonly IMockProviderRequestHandler _requestHandler;
         private readonly IMockProviderAdminRequestHandler _adminRequestHandler;
@@ -48,10 +48,10 @@ namespace PactNet.Mocks.MockHttpService.Nancy
             catch (Exception ex)
             {
                 var exceptionMessage = ex.Message
-                    .Replace("\r", " ")
-                    .Replace("\n", "")
-                    .Replace("\t", " ")
-                    .Replace(@"\", "");
+                    .Replace(@"\", "\\")
+                    .Replace("\r", "\\r")
+                    .Replace("\n", "\\n")
+                    .Replace("\t", "\\t");
 
                 response = new Response
                 {

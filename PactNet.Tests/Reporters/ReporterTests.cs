@@ -1,5 +1,6 @@
-﻿using System.Linq;
+﻿using System;
 using NSubstitute;
+using PactNet.Comparers;
 using PactNet.Reporters;
 using Xunit;
 
@@ -7,129 +8,131 @@ namespace PactNet.Tests.Reporters
 {
     public class ReporterTests
     {
+        private IReportOutputter _mockOutputter;
+
+        private IReporter GetSubject()
+        {
+            _mockOutputter = Substitute.For<IReportOutputter>();
+
+            return new Reporter(_mockOutputter);
+        }
+
         [Fact]
         public void ReportInfo_WhenCalled_CallsWriteInfoOnOutputterWithMessage()
         {
             const string message = "Hello!";
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+
+            var reporter = GetSubject();
 
             reporter.ReportInfo(message);
 
-            mockOutputter.Received(1).WriteInfo(message);
+            _mockOutputter.Received(1).WriteInfo(message);
         }
 
         [Fact]
-        public void ReportError_WithNoParameters_ErrorIsAdded()
+        public void ReportSummary_WithFailuresOnComparisonResult_CallsWriteErrorOnOutputterWithMessage()
         {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            const string comparisonMessage = "The thing I am testing";
 
-            reporter.ReportError();
+            var expectedMessage = String.Format("{0} (FAILED - 1)", comparisonMessage);
 
-            Assert.NotEmpty(reporter.Errors);
+            var reporter = GetSubject();
+
+            var comparisonResult = new ComparisonResult(comparisonMessage);
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure("It failed"));
+
+            reporter.ReportSummary(comparisonResult);
+
+            _mockOutputter.Received(1).WriteError(expectedMessage, Arg.Any<int>());
         }
 
         [Fact]
-        public void ReportError_WithNoParameters_CallsWriteErrorOnOutputter()
+        public void ReportSummary_WithMultipleFailuresOnComparisonResult_CallsWriteErrorOnOutputterWithMessage()
         {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            const string comparisonMessage = "The thing I am testing";
 
-            reporter.ReportError();
+            var expectedMessage = String.Format("{0} (FAILED - 1, 2)", comparisonMessage);
 
-            mockOutputter.Received(1).WriteError(Arg.Any<string>(), Arg.Is<object[]>(x => x.Single() == null));
+            var reporter = GetSubject();
+
+            var comparisonResult = new ComparisonResult(comparisonMessage);
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure("Failure 1"));
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure("Failure 2"));
+
+            reporter.ReportSummary(comparisonResult);
+
+            _mockOutputter.Received(1).WriteError(expectedMessage, Arg.Any<int>());
         }
 
         [Fact]
-        public void ReportError_WithSomeParameters_CallsWriteErrorOnOutputter()
+        public void ReportSummary_WithNoFailuresOnComparisonResult_CallsWriteSuccessOnOutputterWithMessage()
         {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            const string comparisonMessage = "The thing I am testing";
 
-            reporter.ReportError(expected: "tester");
+            var reporter = GetSubject();
 
-            mockOutputter.Received(1).WriteError(Arg.Any<string>(), Arg.Is<object[]>(x => (string) x.Single() == " Expected: tester, Actual: null"));
+            var comparisonResult = new ComparisonResult(comparisonMessage);
+
+            reporter.ReportSummary(comparisonResult);
+
+            _mockOutputter.Received(1).WriteSuccess(comparisonMessage, Arg.Any<int>());
         }
 
         [Fact]
-        public void ReportError_WithOnlyErrorMessageParameter_ErrorIsAdded()
+        public void ReportSummary_WithChildResultMultipleFailuresOnComparisonResult_CallsWriteErrorOnOutputterWithMessage()
         {
-            var errorMessage = "My error message about something that went wrong";
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            const string comparisonMessage1 = "The thing I am testing";
+            const string comparisonMessage2 = "The thing I am testing 2";
 
-            reporter.ReportError(errorMessage);
+            var reporter = GetSubject();
 
-            Assert.NotEmpty(reporter.Errors);
-            Assert.Equal(errorMessage, reporter.Errors.First());
+            var comparisonResult2 = new ComparisonResult(comparisonMessage2);
+            comparisonResult2.RecordFailure(new ErrorMessageComparisonFailure("Failure 2"));
+
+            var comparisonResult = new ComparisonResult(comparisonMessage1);
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure("Failure 1"));
+
+            comparisonResult.AddChildResult(comparisonResult2);
+
+            reporter.ReportSummary(comparisonResult);
+
+            _mockOutputter.Received(1).WriteError(comparisonMessage1 + " (FAILED - 1)", Arg.Any<int>());
+            _mockOutputter.Received(1).WriteError(comparisonMessage2 + " (FAILED - 2)", Arg.Any<int>());
         }
 
         [Fact]
-        public void ReportError_WithAllParameters_ErrorIsAdded()
+        public void ReportFailureReasons_WithFailuresOnComparisonResult_CallsWriteErrorOnOutputterWithFailures()
         {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            const string comparisonMessage = "The thing I am testing";
+            const string comparisonFailureMessage1 = "It failed 1";
+            const string comparisonFailureMessage2 = "It failed 2";
 
-            reporter.ReportError("message", new { test = "" }, new { test = "tester" });
 
-            Assert.NotEmpty(reporter.Errors);
+            var reporter = GetSubject();
+
+            var comparisonResult = new ComparisonResult(comparisonMessage);
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure(comparisonFailureMessage1));
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure(comparisonFailureMessage2));
+
+            reporter.ReportFailureReasons(comparisonResult);
+
+            _mockOutputter.Received(1).WriteError(Environment.NewLine + "1) " + comparisonFailureMessage1, Arg.Any<int>());
+            _mockOutputter.Received(1).WriteError(Environment.NewLine + "2) " + comparisonFailureMessage2, Arg.Any<int>());
         }
 
         [Fact]
-        public void ReportError_WithAllParameters_CallsWriteErrorOnOutputter()
+        public void ReportFailureReasons_WithNoFailuresOnComparisonResult_DoesNotCallTheOutputter()
         {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            const string comparisonMessage = "The thing I am testing";
 
-            reporter.ReportError("message", new { test = "" }, new { test = "tester" });
+            var reporter = GetSubject();
 
-            mockOutputter.Received(1).WriteError(Arg.Any<string>(), Arg.Any<object[]>());
-        }
+            var comparisonResult = new ComparisonResult(comparisonMessage);
 
-        [Fact]
-        public void ThrowIfAnyErrors_WithNoErrors_DoesNotThrow()
-        {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
+            reporter.ReportFailureReasons(comparisonResult);
 
-            reporter.ThrowIfAnyErrors();
-        }
-
-        [Fact]
-        public void ThrowIfAnyErrors_WithErrors_ThrowsPactFailureException()
-        {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
-
-            reporter.ReportError("something broke");
-
-            Assert.Throws<PactFailureException>(() => reporter.ThrowIfAnyErrors());
-        }
-
-        [Fact]
-        public void ClearErrors_WithNoErrors_ErrorsIsEmpty()
-        {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
-
-            reporter.ClearErrors();
-
-            Assert.Empty(reporter.Errors);
-        }
-
-        [Fact]
-        public void ClearErrors_WithErrors_ErrorsIsEmpty()
-        {
-            var mockOutputter = Substitute.For<IReportOutputter>();
-            var reporter = new Reporter(mockOutputter);
-
-            reporter.ReportError("something broke");
-            reporter.ReportError("something broke 2");
-
-            reporter.ClearErrors();
-
-            Assert.Empty(reporter.Errors);
+            _mockOutputter.DidNotReceive().WriteInfo(Arg.Any<String>(), Arg.Any<int>());
+            _mockOutputter.DidNotReceive().WriteError(Arg.Any<String>(), Arg.Any<int>());
         }
     }
 }

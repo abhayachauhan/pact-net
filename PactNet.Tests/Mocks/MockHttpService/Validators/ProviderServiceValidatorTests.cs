@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NSubstitute;
+using PactNet.Comparers;
 using PactNet.Mocks.MockHttpService;
 using PactNet.Mocks.MockHttpService.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
@@ -40,7 +41,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Provider = new Party { Name = "My Provider" }
+                Provider = new Pacticipant { Name = "My Provider" }
             };
 
             var validator = GetSubject();
@@ -53,8 +54,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party(),
-                Provider = new Party { Name = "My Provider" }
+                Consumer = new Pacticipant(),
+                Provider = new Pacticipant { Name = "My Provider" }
             };
 
             var validator = GetSubject();
@@ -67,8 +68,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = String.Empty },
-                Provider = new Party { Name = "My Provider" }
+                Consumer = new Pacticipant { Name = String.Empty },
+                Provider = new Pacticipant { Name = "My Provider" }
             };
 
             var validator = GetSubject();
@@ -81,7 +82,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
+                Consumer = new Pacticipant { Name = "My client" },
             };
 
             var validator = GetSubject();
@@ -94,8 +95,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party()
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant()
             };
 
             var validator = GetSubject();
@@ -108,8 +109,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = String.Empty },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = String.Empty },
             };
 
             var validator = GetSubject();
@@ -122,8 +123,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" }
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" }
             };
 
             var validator = GetSubject();
@@ -139,8 +140,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>()
             };
 
@@ -157,8 +158,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -182,8 +183,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -207,8 +208,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -233,8 +234,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
             var actionInkoved = false;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = null
             };
             var providerStates = new ProviderStates(setUp: () => { actionInkoved = true; }, tearDown: null);
@@ -247,53 +248,61 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         }
 
         [Fact]
-        public void Validate_ProviderStatesSetUpDefined_SetUpActionIsInvoked()
+        public void Validate_ProviderStatesSetUpDefined_SetUpActionIsInvokedForEachInteraction()
         {
-            var actionInkoved = false;
+            var actionInvocationCount = 0;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
                     {
                         Description = "My interaction"
+                    },
+                    new ProviderServiceInteraction
+                    {
+                        Description = "My interaction 2"
                     }
                 }
             };
-            var providerStates = new ProviderStates(setUp: () => { actionInkoved = true; }, tearDown: null);
+            var providerStates = new ProviderStates(setUp: () => { actionInvocationCount++; }, tearDown: null);
 
             var validator = GetSubject();
 
             validator.Validate(pact, providerStates);
 
-            Assert.True(actionInkoved, "Provider states pact setUp action is invoked");
+            Assert.Equal(pact.Interactions.Count(), actionInvocationCount);
         }
 
         [Fact]
-        public void Validate_ProviderStatesTearDownDefined_TearDownActionIsInvoked()
+        public void Validate_ProviderStatesTearDownDefined_TearDownActionIsInvokedForEachInteraction()
         {
-            var actionInkoved = false;
+            var actionInvocationCount = 0;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
                     {
                         Description = "My interaction"
+                    },
+                    new ProviderServiceInteraction
+                    {
+                        Description = "My interaction 2"
                     }
                 }
             };
-            var providerStates = new ProviderStates(setUp: null, tearDown: () => { actionInkoved = true; });
+            var providerStates = new ProviderStates(setUp: null, tearDown: () => { actionInvocationCount++; });
 
             var validator = GetSubject();
 
             validator.Validate(pact, providerStates);
 
-            Assert.True(actionInkoved, "Provider states pact tearDown action is invoked");
+            Assert.Equal(pact.Interactions.Count(), actionInvocationCount);
         }
 
         [Fact]
@@ -302,8 +311,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
             var actionInkoved = false;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -331,8 +340,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
             var actionInkoved = false;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -358,8 +367,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
             var actionInkoved = false;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -385,8 +394,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
             var actionInkoved = false;
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -415,8 +424,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -438,8 +447,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -460,8 +469,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -485,8 +494,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -516,8 +525,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
             var actionInvocationLog = new List<string>();
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -548,12 +557,12 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
         }
 
         [Fact]
-        public void Validate_WhenReporterHasErrors_ThrowsPactFailureException()
+        public void Validate_WhenAFailureOccurs_ThrowsPactFailureException()
         {
             var pact = new ProviderServicePactFile
             {
-                Consumer = new Party { Name = "My client" },
-                Provider = new Party { Name = "My Provider" },
+                Consumer = new Pacticipant { Name = "My client" },
+                Provider = new Pacticipant { Name = "My Provider" },
                 Interactions = new List<ProviderServiceInteraction>
                 {
                     new ProviderServiceInteraction
@@ -563,14 +572,16 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
                 }
             };
 
+            var comparisonResult = new ComparisonResult();
+            comparisonResult.RecordFailure(new ErrorMessageComparisonFailure("It failed"));
+
             var validator = GetSubject();
 
-            _mockReporter
-                .When(x => x.ThrowIfAnyErrors())
-                .Do(info => { throw new PactFailureException("Compare failed"); });
+            _mockResponseComparer
+                .Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>())
+                .Returns(comparisonResult);
 
             Assert.Throws<PactFailureException>(() => validator.Validate(pact, null));
-            _mockReporter.Received(1).ThrowIfAnyErrors();
         }
     }
 }

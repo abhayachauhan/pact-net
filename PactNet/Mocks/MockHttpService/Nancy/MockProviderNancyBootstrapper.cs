@@ -4,10 +4,10 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Diagnostics;
 using Nancy.TinyIoc;
+using PactNet.Logging;
 using PactNet.Mocks.MockHttpService.Comparers;
 using PactNet.Mocks.MockHttpService.Mappers;
 using PactNet.Models;
-using PactNet.Reporters;
 
 namespace PactNet.Mocks.MockHttpService.Nancy
 {
@@ -56,8 +56,8 @@ namespace PactNet.Mocks.MockHttpService.Nancy
             container.Register<IMockProviderRequestHandler, MockProviderRequestHandler>().AsMultiInstance();
             container.Register<IMockProviderAdminRequestHandler, MockProviderAdminRequestHandler>().AsMultiInstance();
             container.Register<IMockProviderRepository, MockProviderRepository>().AsSingleton();
-            container.Register<IReporter, Reporter>().AsSingleton();
             container.Register<IFileSystem, FileSystem>().AsMultiInstance();
+            container.Register(typeof(ILog), (c, o) => LogProvider.GetLogger(typeof(MockProviderNancyRequestDispatcher)));
         }
     }
 }

@@ -1,33 +1,25 @@
-using System;
-using PactNet.Reporters;
+using PactNet.Comparers;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
-    public class HttpPathComparer : IHttpPathComparer
+    internal class HttpPathComparer : IHttpPathComparer
     {
-        private readonly string _messagePrefix;
-        private readonly IReporter _reporter;
-
-        public HttpPathComparer(string messagePrefix, IReporter reporter)
+        public ComparisonResult Compare(string expected, string actual)
         {
-            _messagePrefix = messagePrefix;
-            _reporter = reporter;
-        }
+            var result = new ComparisonResult("has path {0}", expected);
 
-        public void Compare(string expected, string actual)
-        {
             if (expected == null)
             {
-                return;
+                return result;
             }
-
-            _reporter.ReportInfo(String.Format("{0} has path set to {1}", _messagePrefix, expected));
 
             if (!expected.Equals(actual))
             {
-                _reporter.ReportError(expected: expected, actual: actual);
-                return;
+                result.RecordFailure(new DiffComparisonFailure(expected, actual));
+                return result;
             }
+
+            return result;
         }
     }
 }

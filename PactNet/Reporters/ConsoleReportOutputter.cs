@@ -1,21 +1,47 @@
 ﻿using System;
+using System.Text;
 
 namespace PactNet.Reporters
 {
-    public class ConsoleReportOutputter : IReportOutputter
+    internal class ConsoleReportOutputter : IReportOutputter
     {
-        public void WriteInfo(string infoMessage, params object[] args)
+        private const string AnIndent = "  ";
+
+        public void WriteInfo(string infoMessage, int tabDepth = 0)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(infoMessage, args);
+            var indentation = GetIndentation(tabDepth);
+
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.WriteLine(indentation + infoMessage);
             Console.ResetColor();
         }
 
-        public void WriteError(string errorMessage, params object[] args)
+        public void WriteError(string errorMessage, int tabDepth = 0)
         {
+            var indentation = GetIndentation(tabDepth);
+
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(errorMessage, args);
+            Console.WriteLine(indentation + errorMessage);
             Console.ResetColor();
+        }
+
+        public void WriteSuccess(string successMessage, int tabDepth = 0)
+        {
+            var indentation = GetIndentation(tabDepth);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(indentation + successMessage);
+            Console.ResetColor();
+        }
+
+        private static string GetIndentation(int tabDepth)
+        {
+            var builder = new StringBuilder();
+            for (var i = 0; i < tabDepth; i++)
+            {
+                builder.Append(AnIndent);
+            }
+            return builder.ToString();
         }
     }
 }

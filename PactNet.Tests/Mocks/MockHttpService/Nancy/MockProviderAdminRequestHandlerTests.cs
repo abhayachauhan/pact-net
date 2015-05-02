@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -8,12 +9,11 @@ using Nancy;
 using Nancy.IO;
 using Newtonsoft.Json;
 using PactNet.Configuration.Json;
+using PactNet.Logging;
 using PactNet.Mocks.MockHttpService;
-using PactNet.Mocks.MockHttpService.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
 using PactNet.Mocks.MockHttpService.Nancy;
 using PactNet.Models;
-using PactNet.Reporters;
 using Xunit;
 
 namespace PactNet.Tests.Mocks.MockHttpService.Nancy
@@ -21,20 +21,100 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
     public class MockProviderAdminRequestHandlerTests
     {
         private IMockProviderRepository _mockProviderRepository;
-        private IReporter _mockReporter;
         private IFileSystem _mockFileSystem;
+        private ILog _mockLog;
 
         private IMockProviderAdminRequestHandler GetSubject()
         {
             _mockProviderRepository = Substitute.For<IMockProviderRepository>();
-            _mockReporter = Substitute.For<IReporter>();
             _mockFileSystem = Substitute.For<IFileSystem>();
+            _mockLog = Substitute.For<ILog>();
+
+            _mockLog.Log(Arg.Any<LogLevel>(), Arg.Any<Func<string>>(), Arg.Any<Exception>(), Arg.Any<object[]>())
+                .Returns(true);
 
             return new MockProviderAdminRequestHandler(
                 _mockProviderRepository,
-                _mockReporter,
                 _mockFileSystem,
-                new PactFileInfo(null));
+                new PactFileInfo(null),
+                _mockLog);
+        }
+
+        [Fact]
+        public void Handle_WithTheTestContextHeaderAttached_LogsTheTestContext()
+        {
+            const string testContext = "EventsApiConsumerTests.GetAllEvents_WhenCalled_ReturnsAllEvents";
+            var headers = new Dictionary<string, IEnumerable<string>>
+            {
+                { Constants.AdministrativeRequestTestContextHeaderKey, new List<string> { testContext } }
+            };
+
+            var context = new NancyContext
+            {
+                Request = new Request("DELETE", new Url
+                  {
+                    Path = "/interactions",
+                    Scheme = "http"
+                  }, null,  headers)
+            };
+
+            var handler = GetSubject();
+
+            handler.Handle(context);
+
+            _mockLog.Received(1).Log(LogLevel.Info, Arg.Any<Func<string>>(), null, Arg.Is<object[]>(x => x.Single() == testContext));
+        }
+
+        [Fact]
+        public void Handle_WithTheTestContextHeaderAttached_SetsTestContextOnTheRepository()
+        {
+            const string testContext = "EventsApiConsumerTests.GetAllEvents_WhenCalled_ReturnsAllEvents";
+            var headers = new Dictionary<string, IEnumerable<string>>
+            {
+                { Constants.AdministrativeRequestTestContextHeaderKey, new List<string> { testContext } }
+            };
+
+            var context = new NancyContext
+            {
+                Request = new Request("DELETE", new Url
+                {
+                    Path = "/interactions",
+                    Scheme = "http"
+                }, null, headers)
+            };
+
+            var handler = GetSubject();
+
+            handler.Handle(context);
+
+            _mockProviderRepository.Received(1).TestContext = testContext;
+        }
+
+        [Fact]
+        public void Handle_WhenTestContextIsSetOnTheRepository_DoesNotLogTheTextContext()
+        {
+            const string testContext = "EventsApiConsumerTests.GetAllEvents_WhenCalled_ReturnsAllEvents";
+            var headers = new Dictionary<string, IEnumerable<string>>
+            {
+                { Constants.AdministrativeRequestTestContextHeaderKey, new List<string> { testContext } }
+            };
+
+            var context = new NancyContext
+            {
+                Request = new Request("DELETE", new Url
+                {
+                    Path = "/interactions",
+                    Scheme = "http"
+                }, null, headers)
+            };
+
+            var handler = GetSubject();
+
+            _mockProviderRepository.TestContext.Returns(testContext);
+
+            handler.Handle(context);
+
+            _mockLog.Received(0).Log(LogLevel.Info, Arg.Any<Func<string>>(), null, Arg.Is<object[]>(x => x.Single() == testContext));
         }
 
         [Fact]
@@ -49,7 +129,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
 
             handler.Handle(context);
 
-            _mockProviderRepository.Received(1).ClearHandledRequests();
+            _mockProviderRepository.Received(1).ClearTestScopedState();
         }
 
         [Fact]
@@ -64,7 +144,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
 
             handler.Handle(context);
 
-            _mockProviderRepository.Received(1).ClearTestScopedInteractions();
+            _mockProviderRepository.Received(1).ClearTestScopedState();
         }
 
         [Fact]
@@ -197,21 +277,6 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         }
 
         [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerification_ReportErrorIsNotCalledOnReporter()
-        {
-            var context = new NancyContext
-            {
-                Request = new Request("GET", "/interactions/verification", "http")
-            };
-
-            var handler = GetSubject();
-
-            handler.Handle(context);
-
-            _mockReporter.DidNotReceive().ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
-        }
-
-        [Fact]
         public void Handle_WithAGetRequestToInteractionsVerification_ReturnsOkResponse()
         {
             var context = new NancyContext
@@ -269,34 +334,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         }
 
         [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasCalledExactlyOnce_ReportErrorIsNotCalledOnReporter()
-        {
-            var context = new NancyContext
-            {
-                Request = new Request("GET", "/interactions/verification", "http")
-            };
-
-            var interactions = new List<ProviderServiceInteraction>
-            {
-                new ProviderServiceInteraction()
-            };
-
-            var handler = GetSubject();
-
-            _mockProviderRepository.TestScopedInteractions.Returns(interactions);
-
-            _mockProviderRepository.HandledRequests.Returns(new List<HandledRequest>
-            {
-                new HandledRequest(new ProviderServiceRequest(), interactions.First())
-            });
-
-            handler.Handle(context);
-
-            _mockReporter.DidNotReceive().ReportError(Arg.Any<string>(), Arg.Any<object>(), Arg.Any<object>());
-        }
-
-        [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasNotCalled_ReportErrorIsCalledOnReporter()
+        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasNotCalled_ReturnsInternalServerErrorResponse()
         {
             var context = new NancyContext
             {
@@ -308,13 +346,31 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
 
             _mockProviderRepository.TestScopedInteractions.Returns(new List<ProviderServiceInteraction> { new ProviderServiceInteraction() });
 
-            handler.Handle(context);
+            var response = handler.Handle(context);
 
-            _mockReporter.Received(1).ReportError(Arg.Any<string>());
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasCalledMultipleTimes_ReportErrorIsCalledOnReporter()
+        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasNotCalled_LogsTheMissingRequest()
+        {
+            var context = new NancyContext
+            {
+                Request = new Request("GET", "/interactions/verification", "http")
+            };
+
+            var handler = GetSubject();
+
+
+            _mockProviderRepository.TestScopedInteractions.Returns(new List<ProviderServiceInteraction> { new ProviderServiceInteraction() });
+
+            var response = handler.Handle(context);
+
+            _mockLog.Received().Log(LogLevel.Error, Arg.Any<Func<string>>(), null, Arg.Any<object[]>());
+        }
+
+        [Fact]
+        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasCalledMultipleTimes_ReturnsInternalServerErrorResponse()
         {
             var context = new NancyContext
             {
@@ -336,13 +392,41 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
                 new HandledRequest(new ProviderServiceRequest(), interactions.First())
             });
 
-            handler.Handle(context);
+            var response = handler.Handle(context);
 
-            _mockReporter.Received(1).ReportError(Arg.Any<string>());
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndNoInteractionsRegisteredHoweverMockProviderRecievedInteractions_ReportErrorIsCalledOnReporter()
+        public void Handle_WithAGetRequestToInteractionsVerificationAndRegisteredInteractionWasCalledMultipleTimes_LogsTheError()
+        {
+            var context = new NancyContext
+            {
+                Request = new Request("GET", "/interactions/verification", "http")
+            };
+
+            var interactions = new List<ProviderServiceInteraction>
+            {
+                new ProviderServiceInteraction()
+            };
+
+            var handler = GetSubject();
+
+            _mockProviderRepository.TestScopedInteractions.Returns(interactions);
+
+            _mockProviderRepository.HandledRequests.Returns(new List<HandledRequest>
+            {
+                new HandledRequest(new ProviderServiceRequest(), interactions.First()),
+                new HandledRequest(new ProviderServiceRequest(), interactions.First())
+            });
+
+            var response = handler.Handle(context);
+
+            _mockLog.Received().Log(LogLevel.Error, Arg.Any<Func<string>>(), null, Arg.Any<object[]>());
+        }
+
+        [Fact]
+        public void Handle_WithAGetRequestToInteractionsVerificationAndNoInteractionsRegisteredHoweverMockProviderRecievedInteractions_ReturnsInternalServerErrorResponse()
         {
             var context = new NancyContext
             {
@@ -356,9 +440,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
                 new HandledRequest(new ProviderServiceRequest(), new ProviderServiceInteraction())
             });
 
-            handler.Handle(context);
+            var response = handler.Handle(context);
 
-            _mockReporter.Received(1).ReportError(Arg.Any<string>());
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         [Fact]
@@ -368,12 +452,19 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
             {
                 Request = new Request("GET", "/interactions/verification", "http")
             };
+            var interaction = new ProviderServiceInteraction();
 
             var handler = GetSubject();
+            
+
+            _mockProviderRepository.TestScopedInteractions.Returns(new List<ProviderServiceInteraction>
+            {
+                interaction
+            });
 
             _mockProviderRepository.HandledRequests.Returns(new List<HandledRequest>
             {
-                new HandledRequest(new ProviderServiceRequest(), new ProviderServiceInteraction())
+                new HandledRequest(new ProviderServiceRequest(), interaction)
             });
 
             var response = handler.Handle(context);
@@ -396,19 +487,15 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
                 new HandledRequest(new ProviderServiceRequest(), new ProviderServiceInteraction())
             });
 
-            _mockReporter
-                .When(x => x.ThrowIfAnyErrors())
-                .Do(x => { throw new PactFailureException("Expected request cannot be null"); });
-
             var response = handler.Handle(context);
 
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndReporterHasErrors_ReturnsInternalServerErrorResponse()
+        public void Handle_WithAGetRequestToInteractionsVerificationAndAnInteractionWasSentButNotRegisteredByTheTest_ReturnsFailureResponseContent()
         {
-            const string exceptionMessage = "Registered mock interaction with description 'My description' and provider state 'My provider state', was not used by the test.";
+            const string failure = "An unexpected request POST /tester was seen by the mock provider service.";
             var context = new NancyContext
             {
                 Request = new Request("GET", "/interactions/verification", "http")
@@ -416,44 +503,35 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
 
             var handler = GetSubject();
 
-            _mockProviderRepository.TestScopedInteractions.Returns(new List<ProviderServiceInteraction> { new ProviderServiceInteraction() });
+            var handledRequest = new ProviderServiceRequest();
+            var handledInteraction = new ProviderServiceInteraction { Request = handledRequest };
 
-            _mockReporter
-                .When(x => x.ThrowIfAnyErrors())
-                .Do(x => { throw new PactFailureException(exceptionMessage); });
+            var unExpectedRequest = new ProviderServiceRequest { Method = HttpVerb.Post, Path = "/tester" };
 
-            var response = handler.Handle(context);
+            _mockProviderRepository.TestScopedInteractions
+                .Returns(new List<ProviderServiceInteraction>
+                {
+                    handledInteraction
+                });
 
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        }
-
-        [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndReporterHasErrors_ReturnsErrorResponseContent()
-        {
-            const string exceptionMessage = "Registered mock interaction with description 'My description' and provider state 'My provider state', was not used by the test.";
-            var context = new NancyContext
-            {
-                Request = new Request("GET", "/interactions/verification", "http")
-            };
-
-            var handler = GetSubject();
-
-            _mockProviderRepository.TestScopedInteractions.Returns(new List<ProviderServiceInteraction> { new ProviderServiceInteraction() });
-
-            _mockReporter
-                .When(x => x.ThrowIfAnyErrors())
-                .Do(x => { throw new PactFailureException(exceptionMessage); });
+            _mockProviderRepository.HandledRequests
+                .Returns(new List<HandledRequest>
+                {
+                    new HandledRequest(handledRequest, handledInteraction),
+                    new HandledRequest(unExpectedRequest, null)
+                });
 
             var response = handler.Handle(context);
 
             var content = ReadResponseContent(response);
 
-            Assert.Equal(exceptionMessage, content);
+            Assert.Equal(failure, content);
         }
 
         [Fact]
-        public void Handle_WithAGetRequestToInteractionsVerificationAndReporterHasErrors_ClearErrorsIsCalledOnReporter()
+        public void Handle_WithAGetRequestToInteractionsVerificationAndAnInteractionWasSentButNotRegisteredByTheTest_LogsTheUnexpectedRequest()
         {
+            const string failure = "An unexpected request POST /tester was seen by the mock provider service.";
             var context = new NancyContext
             {
                 Request = new Request("GET", "/interactions/verification", "http")
@@ -461,13 +539,49 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
 
             var handler = GetSubject();
 
-            _mockReporter
-                .When(x => x.ThrowIfAnyErrors())
-                .Do(x => { throw new PactFailureException("Expected request cannot be null"); });
+            var handledRequest = new ProviderServiceRequest();
+            var handledInteraction = new ProviderServiceInteraction { Request = handledRequest };
 
-            handler.Handle(context);
+            var unExpectedRequest = new ProviderServiceRequest { Method = HttpVerb.Post, Path = "/tester" };
 
-            _mockReporter.Received(1).ClearErrors();
+            _mockProviderRepository.TestScopedInteractions
+                .Returns(new List<ProviderServiceInteraction>
+                {
+                    handledInteraction
+                });
+
+            _mockProviderRepository.HandledRequests
+                .Returns(new List<HandledRequest>
+                {
+                    new HandledRequest(handledRequest, handledInteraction),
+                    new HandledRequest(unExpectedRequest, null)
+                });
+
+            var response = handler.Handle(context);
+
+            var content = ReadResponseContent(response);
+
+            _mockLog.Received().Log(LogLevel.Error, Arg.Any<Func<string>>(), null, Arg.Any<object[]>());
+        }
+
+        [Fact]
+        public void Handle_WithAGetRequestToInteractionsVerificationAndAFailureOcurrs_ReturnsFailureResponseContent()
+        {
+            const string failure = "The interaction with description '' and provider state '', was not used by the test. Missing request No Method No Path.";
+            var context = new NancyContext
+            {
+                Request = new Request("GET", "/interactions/verification", "http")
+            };
+
+            var handler = GetSubject();
+
+            _mockProviderRepository.TestScopedInteractions.Returns(new List<ProviderServiceInteraction> { new ProviderServiceInteraction() });
+
+            var response = handler.Handle(context);
+
+            var content = ReadResponseContent(response);
+
+            Assert.Equal(failure, content);
         }
 
         [Fact]
@@ -475,8 +589,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         {
             var pactDetails = new PactDetails
             {
-                Consumer = new Party { Name = "Consumer" },
-                Provider = new Party { Name = "Provider" }
+                Consumer = new Pacticipant { Name = "Consumer" },
+                Provider = new Pacticipant { Name = "Provider" }
             };
 
             var pactFile = new ProviderServicePactFile
@@ -509,8 +623,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         {
             var pactDetails = new PactDetails
             {
-                Consumer = new Party { Name = "Consumer" },
-                Provider = new Party { Name = "Provider" }
+                Consumer = new Pacticipant { Name = "Consumer" },
+                Provider = new Pacticipant { Name = "Provider" }
             };
 
             var interactions = new List<ProviderServiceInteraction>
@@ -562,8 +676,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         {
             var pactDetails = new PactDetails
             {
-                Consumer = new Party { Name = "Consumer" },
-                Provider = new Party { Name = "Provider" }
+                Consumer = new Pacticipant { Name = "Consumer" },
+                Provider = new Pacticipant { Name = "Provider" }
             };
 
             var interactions = new List<ProviderServiceInteraction>
@@ -607,8 +721,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         {
             var pactDetails = new PactDetails
             {
-                Consumer = new Party { Name = "Consumer" },
-                Provider = new Party { Name = "Provider" }
+                Consumer = new Pacticipant { Name = "Consumer" },
+                Provider = new Pacticipant { Name = "Provider" }
             };
 
             var interactions = new List<ProviderServiceInteraction>
@@ -661,8 +775,8 @@ namespace PactNet.Tests.Mocks.MockHttpService.Nancy
         {
             var pactDetails = new PactDetails
             {
-                Consumer = new Party { Name = "Consumer" },
-                Provider = new Party { Name = "Provider" }
+                Consumer = new Pacticipant { Name = "Consumer" },
+                Provider = new Pacticipant { Name = "Provider" }
             };
 
             var interactions = new List<ProviderServiceInteraction>
