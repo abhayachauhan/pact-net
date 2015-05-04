@@ -24,8 +24,8 @@ namespace Consumer.Tests
 		public void GetAllEvents_WhenCalled_ReturnsAllEvents()
 		{
 			//Arrange
-            _mockProviderService.Given("there are events with ids '45D80D13-D5A2-48D7-8353-CBB4C0EAABF5', '83F9262F-28F1-4703-AB1A-8CFD9E8249C9' and '3E83A96B-2A0C-49B1-9959-26DF23F83AEB'")
-                .UponReceiving("a request to retrieve all events")
+			_mockProviderService.Given("there are events with ids '45D80D13-D5A2-48D7-8353-CBB4C0EAABF5', '83F9262F-28F1-4703-AB1A-8CFD9E8249C9' and '3E83A96B-2A0C-49B1-9959-26DF23F83AEB'")
+				.UponReceiving("a request to retrieve all events")
 				.With(new ProviderServiceRequest
 				{
 					Method = HttpVerb.Get,
@@ -86,7 +86,7 @@ namespace Consumer.Tests
 			var dateTime = new DateTime(2011, 07, 01, 01, 41, 03);
 			DateTimeFactory.Now = () => dateTime;
 
-            _mockProviderService.UponReceiving("a request to create a new event")
+			_mockProviderService.UponReceiving("a request to create a new event")
 				.With(new ProviderServiceRequest
 				{
 					Method = HttpVerb.Post,
@@ -119,7 +119,7 @@ namespace Consumer.Tests
 		public void IsAlive_WhenApiIsAlive_ReturnsTrue()
 		{
 			//Arrange
-            _mockProviderService.UponReceiving("a request to check the api status")
+			_mockProviderService.UponReceiving("a request to check the api status")
 				.With(new ProviderServiceRequest
 				{
 					Method = HttpVerb.Get,
@@ -132,14 +132,14 @@ namespace Consumer.Tests
 					Headers = new Dictionary<string, string> { { "Content-Type", "application/json; charset=utf-8" } },
 					Body = new
 					{
-                        alive = true,
-                        _links = new
-                        {
-                            uptime = new
-                            {
-                                href = "/stats/uptime"
-                            }
-                        }
+						alive = true,
+						_links = new
+						{
+							uptime = new
+							{
+								href = "/stats/uptime"
+							}
+						}
 					}
 				});
 
@@ -155,71 +155,71 @@ namespace Consumer.Tests
 		}
 
 		[Fact]
-        public void UpSince_WhenApiIsAliveAndWeRetrieveUptime_ReturnsUpSinceDate()
-        {
-            //Arrange
-            var upSinceDate = new DateTime(2014, 6, 27, 23, 51, 12, DateTimeKind.Utc);
+		public void UpSince_WhenApiIsAliveAndWeRetrieveUptime_ReturnsUpSinceDate()
+		{
+			//Arrange
+			var upSinceDate = new DateTime(2014, 6, 27, 23, 51, 12, DateTimeKind.Utc);
 
-            _mockProviderService.UponReceiving("a request to check the api status")
-                .With(new ProviderServiceRequest
-                {
-                    Method = HttpVerb.Get,
-                    Headers = new Dictionary<string, string> { { "Accept", "application/json" } },
-                    Path = "/stats/status"
-                })
-                .WillRespondWith(new ProviderServiceResponse
-                {
-                    Status = 200,
-                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json; charset=utf-8" } },
-                    Body = new
-                    {
-                        alive = true,
-                        _links = new
-                        {
-                            uptime = new
-                            {
-                                href = "/stats/uptime"
-                            }
-                        }
-                    }
-                });
+			_mockProviderService.UponReceiving("a request to check the api status")
+				.With(new ProviderServiceRequest
+				{
+					Method = HttpVerb.Get,
+					Headers = new Dictionary<string, string> { { "Accept", "application/json" } },
+					Path = "/stats/status"
+				})
+				.WillRespondWith(new ProviderServiceResponse
+				{
+					Status = 200,
+					Headers = new Dictionary<string, string> { { "Content-Type", "application/json; charset=utf-8" } },
+					Body = new
+					{
+						alive = true,
+						_links = new
+						{
+							uptime = new
+							{
+								href = "/stats/uptime"
+							}
+						}
+					}
+				});
 
-            _mockProviderService
-                .UponReceiving("a request to check the api uptime")
-                .With(new ProviderServiceRequest
-                {
-                    Method = HttpVerb.Get,
-                    Headers = new Dictionary<string, string> { { "Accept", "application/json" } },
-                    Path = "/stats/uptime"
-                })
-                .WillRespondWith(new ProviderServiceResponse
-                {
-                    Status = 200,
-                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json; charset=utf-8" } },
-                    Body = new
-                    {
-                        upSince = upSinceDate
-                    }
-                });
+			_mockProviderService
+				.UponReceiving("a request to check the api uptime")
+				.With(new ProviderServiceRequest
+				{
+					Method = HttpVerb.Get,
+					Headers = new Dictionary<string, string> { { "Accept", "application/json" } },
+					Path = "/stats/uptime"
+				})
+				.WillRespondWith(new ProviderServiceResponse
+				{
+					Status = 200,
+					Headers = new Dictionary<string, string> { { "Content-Type", "application/json; charset=utf-8" } },
+					Body = new
+					{
+						upSince = upSinceDate
+					}
+				});
 
-            var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
+			var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
 
-            //Act
-            var result = consumer.UpSince();
+			//Act
+			var result = consumer.UpSince();
 
-            //Assert
-            Assert.Equal(upSinceDate.ToString("O"), result.Value.ToString("O"));
+			//Assert
+			Assert.Equal(upSinceDate.ToString("O"), result.Value.ToString("O"));
 
-            _mockProviderService.VerifyInteractions();
-        }
+			_mockProviderService.VerifyInteractions();
+		}
 
-        [Fact]
+		[Fact]
 		public void GetEventById_WhenTheEventExists_ReturnsEvent()
 		{
 			//Arrange
 			var eventId = Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9");
-            _mockProviderService.Given(String.Format("there is an event with id '{0}'", eventId))
-                .UponReceiving(String.Format("a request to retrieve event with id '{0}'", eventId))
+			_mockProviderService.Given(String.Format("there is an event with id '{0}'", eventId))
+				.UponReceiving(String.Format("a request to retrieve event with id '{0}'", eventId))
 				.With(new ProviderServiceRequest
 				{
 					Method = HttpVerb.Get,
@@ -236,36 +236,36 @@ namespace Consumer.Tests
                     {
                         { "Content-Type", "application/json; charset=utf-8" }
                     },
-                    Body = new
-                    {
-                        eventId = eventId
-                    }
-                });
+					Body = new
+					{
+						eventId = eventId
+					}
+				});
 
-            var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
+			var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
 
-            //Act
-            var result = consumer.GetEventById(eventId);
+			//Act
+			var result = consumer.GetEventById(eventId);
 
-            //Assert
-            Assert.Equal(eventId, result.EventId);
+			//Assert
+			Assert.Equal(eventId, result.EventId);
 
-            _mockProviderService.VerifyInteractions();
-        }
+			_mockProviderService.VerifyInteractions();
+		}
 
-        [Fact]
-        public void GetEventsByType_WhenOneEventWithTheTypeExists_ReturnsEvent()
-        {
-            //Arrange
-            const string eventType = "DetailsView";
-            _mockProviderService.Given(String.Format("there is one event with type '{0}'", eventType))
-                .UponReceiving(String.Format("a request to retrieve events with type '{0}'", eventType))
-                .With(new ProviderServiceRequest
-                {
-                    Method = HttpVerb.Get,
-                    Path = "/events",
-                    Query = "type=" + eventType,
-                    Headers = new Dictionary<string, string>
+		[Fact]
+		public void GetEventsByType_WhenOneEventWithTheTypeExists_ReturnsEvent()
+		{
+			//Arrange
+			const string eventType = "DetailsView";
+			_mockProviderService.Given(String.Format("there is one event with type '{0}'", eventType))
+				.UponReceiving(String.Format("a request to retrieve events with type '{0}'", eventType))
+				.With(new ProviderServiceRequest
+				{
+					Method = HttpVerb.Get,
+					Path = "/events",
+					Query = "type=" + eventType,
+					Headers = new Dictionary<string, string>
                     {
                         { "Accept", "application/json" }
                     }
@@ -298,45 +298,5 @@ namespace Consumer.Tests
 		}
 	}
 
-	public class TypeMatcher : Matcher
-	{
-		public enum DataType
-		{
-			String,
-			Boolean,
-			Number,
-			Object,
-			Array
-		};
 
-		private DataType _type { get; set; }
-
-		public TypeMatcher(DataType type)
-		{
-			_type = type;
-		}
-	}
-
-	public class RegExMatcher : Matcher
-	{
-		private string _regEx;
-
-		public RegExMatcher(string regEx)
-		{
-			_regEx = regEx;
-		}
-	}
-
-	public abstract class Matcher
-	{
-		public static TypeMatcher Type(TypeMatcher.DataType type)
-		{
-			return new TypeMatcher(type);
-		}
-
-		public static RegExMatcher RegEx()
-		{
-			return new RegExMatcher();
-		}
-	}
 }

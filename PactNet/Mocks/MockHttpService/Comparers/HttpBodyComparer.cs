@@ -43,23 +43,23 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             return result;
         }
 
-        private bool AssertPropertyValuesMatch(JToken httpBody1, JToken httpBody2, ComparisonResult result)
+        private bool AssertPropertyValuesMatch(JToken expected, JToken actual, ComparisonResult result)
         {
-            switch (httpBody1.Type)
+            switch (expected.Type)
             {
                 case JTokenType.Array: 
                     {
-                        if (httpBody1.Count() != httpBody2.Count())
+                        if (expected.Count() != actual.Count())
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
 
-                        for (var i = 0; i < httpBody1.Count(); i++)
+                        for (var i = 0; i < expected.Count(); i++)
                         {
-                            if (httpBody2.Count() > i)
+                            if (actual.Count() > i)
                             {
-                                var isMatch = AssertPropertyValuesMatch(httpBody1[i], httpBody2[i], result);
+                                var isMatch = AssertPropertyValuesMatch(expected[i], actual[i], result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -70,9 +70,9 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     }
                 case JTokenType.Object:
                     {
-                        foreach (JProperty item1 in httpBody1)
+                        foreach (JProperty item1 in expected)
                         {
-                            var item2 = httpBody2.Cast<JProperty>().SingleOrDefault(x => x.Name == item1.Name);
+                            var item2 = actual.Cast<JProperty>().SingleOrDefault(x => x.Name == item1.Name);
 
                             if (item2 != null)
                             {
@@ -84,7 +84,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                             }
                             else
                             {
-                                result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                                result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                                 return false;
                             }
                         }
@@ -92,8 +92,8 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     }
                 case JTokenType.Property: 
                     {
-                        var httpBody2Item = httpBody2.SingleOrDefault();
-                        var httpBody1Item = httpBody1.SingleOrDefault();
+                        var httpBody2Item = actual.SingleOrDefault();
+                        var httpBody1Item = expected.SingleOrDefault();
 
                         if (httpBody2Item == null && httpBody1Item == null)
                         {
@@ -106,7 +106,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                         }
                         else
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
                         break;
@@ -114,18 +114,18 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 case JTokenType.Integer:
                 case JTokenType.String: 
                     {
-                        if (!httpBody1.Equals(httpBody2))
+                        if (!expected.Equals(actual))
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
                         break;
                     }
                 default:
                     {
-                        if (!JToken.DeepEquals(httpBody1, httpBody2))
+                        if (!JToken.DeepEquals(expected, actual))
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
                         break;
