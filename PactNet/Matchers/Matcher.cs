@@ -1,13 +1,19 @@
-﻿public abstract class Matcher
+﻿namespace PactNet.Matchers
 {
-	public 
-	public static TypeMatcher Type(TypeMatcher.DataType type)
+	public abstract class Matcher
 	{
-		return new TypeMatcher(type);
-	}
+		public dynamic Example { get; set; }
 
-	public static RegExMatcher RegEx(string regEx)
-	{
-		return new RegExMatcher(regEx);
+		public static TypeMatcher TypeEg(object example, TypeMatcher.DataType type)
+		{
+			return new TypeMatcher(example, type);
+		}
+
+		public static RegExMatcher RegExEg(object example, string regEx)
+		{
+			return new RegExMatcher(example, regEx);
+		}
+
+		public abstract bool Match(object input);
 	}
 }

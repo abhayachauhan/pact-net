@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PactNet.Matchers;
 using PactNet.Mocks.MockHttpService.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
 using Xunit;
@@ -387,7 +388,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 				Status = 201,
 				Body = new
 				{
-					myNumberMatcher = Matcher.Type(TypeMatcher.DataType.Number),
+					myNumberMatcher = 2,
 					myString = "Tester",
 					myInt = 1,
 					myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C")

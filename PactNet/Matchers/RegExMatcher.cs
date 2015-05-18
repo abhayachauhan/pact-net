@@ -1,9 +1,31 @@
-﻿public class RegExMatcher : Matcher
-{
-	private string _regEx;
+﻿using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using PactNet.Matchers;
 
-	public RegExMatcher(string regEx)
+public class RegExMatcher : Matcher
+{
+	public string RegEx { get; set; }
+	public dynamic Example { get; set; }
+
+	public RegExMatcher(object example, string regEx)
 	{
-		_regEx = regEx;
+		Example = example;
+		RegEx = regEx;
+	}
+
+	public override bool Match(object input)
+	{
+		return Regex.IsMatch(input.ToString(), RegEx);
+	}
+
+	[JsonProperty(PropertyName = "$type")]
+	public string Name
+	{
+		get { return GetType().FullName; }
+	}
+
+	public static string Type
+	{
+		get { return typeof(RegExMatcher).FullName; }
 	}
 }
