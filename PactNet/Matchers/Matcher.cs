@@ -15,5 +15,7 @@
 		}
 
 		public abstract bool Match(object input);
+
+		public abstract dynamic ResponseMatchingRule { get; }
 	}
 }

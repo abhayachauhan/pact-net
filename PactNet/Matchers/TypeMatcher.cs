@@ -41,6 +41,17 @@ namespace PactNet.Matchers
 			}
 		}
 
+		public override dynamic ResponseMatchingRule
+		{
+			get
+			{
+				return new
+				{
+					match = "type"
+				};
+			}
+		}
+
 		[JsonProperty(PropertyName = "$type")]
 		public string Name
 		{

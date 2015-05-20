@@ -81,7 +81,7 @@ namespace PactNet.Mocks.MockHttpService.Models
 				MatchingRules = MatchingRules ?? new PactProviderResponseMatchingRules();
 				MatchingRules.Body = MatchingRules.Body ?? new Dictionary<string, dynamic>();
 
-				MatchingRules.Body.Add("$" + item4.Parent.Path, matcher);
+				MatchingRules.Body.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
 
 				body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
 			}
@@ -94,7 +94,7 @@ namespace PactNet.Mocks.MockHttpService.Models
 				MatchingRules = MatchingRules ?? new PactProviderResponseMatchingRules();
 				MatchingRules.Body = MatchingRules.Body ?? new Dictionary<string, dynamic>();
 
-				MatchingRules.Body.Add("$" + item4.Parent.Path, matcher);
+				MatchingRules.Body.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
 
 				body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
 			}

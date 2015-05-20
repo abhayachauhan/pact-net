@@ -28,4 +28,15 @@ public class RegExMatcher : Matcher
 	{
 		get { return typeof(RegExMatcher).FullName; }
 	}
+
+	public override dynamic ResponseMatchingRule
+	{
+		get
+		{
+			return new
+			{
+				regex = RegEx
+			};
+		}
+	}
 }
