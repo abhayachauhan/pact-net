@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using PactNet.Matchers;
@@ -31,7 +32,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -51,7 +52,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -79,7 +80,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -107,7 +108,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -135,7 +136,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -165,7 +166,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -193,7 +194,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -221,7 +222,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -245,7 +246,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -277,7 +278,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -309,7 +310,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -342,7 +343,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -375,7 +376,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -409,7 +410,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -441,7 +442,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -467,7 +468,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -505,7 +506,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -543,9 +544,55 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual);
+			var result = comparer.Compare(expected, actual, null);
 
 			Assert.Equal(1, result.Failures.Count());
+		}
+
+		[Fact]
+		public void Compare_WithMatchingCollection_WithTypeMatching()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Example Tester",
+                        myInt = 1,
+                        myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C")
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Tester",
+                        myInt = 1,
+                        myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C")
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myString", new { match = "type"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.False(result.HasFailure, "There should not be any errors");
 		}
 	}
 }

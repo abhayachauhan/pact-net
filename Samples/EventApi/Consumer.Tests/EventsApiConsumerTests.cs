@@ -137,7 +137,7 @@ namespace Consumer.Tests
 						{
 							uptime = new
 							{
-								href = "/stats/uptime"
+								href = Matcher.TypeEg("/stats/uptime", TypeMatcher.DataType.String)
 							}
 						}
 					}

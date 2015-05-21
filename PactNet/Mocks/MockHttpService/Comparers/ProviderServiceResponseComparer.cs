@@ -20,7 +20,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             _httpBodyComparer = new HttpBodyComparer();
         }
 
-        public ComparisonResult Compare(ProviderServiceResponse expected, ProviderServiceResponse actual)
+        public ComparisonResult Compare(ProviderServiceResponse expected, ProviderServiceResponse actual, PactProviderResponseMatchingRules matchingRules)
         {
             var result = new ComparisonResult("returns a response which");
 
@@ -46,7 +46,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 var actualResponseBody = JsonConvert.DeserializeObject<JToken>(actualResponseBodyJson);
                 var expectedResponseBody = JsonConvert.DeserializeObject<JToken>(expectedResponseBodyJson);
 
-                var bodyResult = _httpBodyComparer.Compare(expectedResponseBody, actualResponseBody);
+				var bodyResult = _httpBodyComparer.Compare(expectedResponseBody, actualResponseBody, matchingRules);
                 result.AddChildResult(bodyResult);
             }
 
