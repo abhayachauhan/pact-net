@@ -604,5 +604,215 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
+
+		[Fact]
+		public void Compare_WithMatchingCollection_WithObjectMismatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+						myObject = new { RandomProperty = 1 }
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+						myObject = new[] {"Random Property" }
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myObject", new { match = "type"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.Equal(1, result.Failures.Count());
+		}
+
+		[Fact]
+		public void Compare_WithMatchingCollection_WithBooleanMismatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+						myBoolean = false
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+						myBoolean = "false"
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myBoolean", new { match = "type"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.Equal(1, result.Failures.Count());
+		}
+
+		[Fact]
+		public void Compare_WithMatchingCollection_WithArrayMismatching()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+						myArray = new[] { "Blah"}
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+						myArray = "Blah"
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myArray", new { match = "type"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.Equal(1, result.Failures.Count());
+		}
+
+		[Fact]
+		public void Compare_WithMatchingCollection_WithIntMismatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myInt = 55
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myInt = "String"
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myInt", new { match = "type"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.Equal(1, result.Failures.Count());
+		}
+
+		[Fact]
+		public void Compare_WithMatchingCollection_WithStringMismatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Example Tester"
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = 5
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myString", new { match = "type"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.Equal(1, result.Failures.Count());
+		}
 	}
 }

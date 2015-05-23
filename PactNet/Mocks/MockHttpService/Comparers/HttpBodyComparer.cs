@@ -50,23 +50,16 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
 		private bool AssertPropertyValuesMatch(JToken expected, JToken actual, IDictionary<string, dynamic> matchingRules, ComparisonResult result)
 		{
-			JToken matchingRule = null;
 			if (matchingRules != null && matchingRules.ContainsKey("$." + expected.Path))
 			{
-				matchingRule = JToken.FromObject(matchingRules["$." + expected.Path]);
+				JToken matchingRule = JToken.FromObject(matchingRules["$." + expected.Path]);
 
-				foreach (var property in matchingRule)
+				if (matchingRule.OfType<JProperty>().Any(property => (property).Name == "match"))
 				{
-					if (property is JProperty)
-					{
-						if (((JProperty)property).Name == "match")
-						{
-							var isMatch = ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
-							if (!isMatch)
-								result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
-							return isMatch;
-						}
-					}
+					var isMatch = ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
+					if (!isMatch)
+						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
+					return isMatch;
 				}
 			}
 			//	//matchingRule.IsMatch()
