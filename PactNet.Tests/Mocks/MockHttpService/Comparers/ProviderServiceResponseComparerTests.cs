@@ -814,5 +814,47 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			Assert.Equal(1, result.Failures.Count());
 		}
+
+		[Fact]
+		public void Compare_WithRegExMatching_WithStringMatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Example Tester"
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Another string"
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myString", new { regex = @"\w+"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.False(result.HasFailure, "There should not be any errors");
+		}
 	}
 }

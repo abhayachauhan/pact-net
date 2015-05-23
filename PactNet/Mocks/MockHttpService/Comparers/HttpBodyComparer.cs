@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using PactNet.Comparers;
-using PactNet.Matchers;
 using PactNet.Mocks.MockHttpService.Models;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
@@ -28,11 +25,8 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 				return result;
 			}
 
-			//TODO: Maybe look at changing these to JToken.FromObject(...)
-			//string expectedJson = JsonConvert.SerializeObject(expected);
-			//string actualJson = JsonConvert.SerializeObject(actual);
-			var expectedToken = JToken.FromObject(expected);//JsonConvert.DeserializeObject<JToken>(expectedJson);
-			var actualToken = JToken.FromObject(actual);//JsonConvert.DeserializeObject<JToken>(actualJson);
+			var expectedToken = JToken.FromObject(expected);
+			var actualToken = JToken.FromObject(actual);
 
 			if (useStrict)
 			{
@@ -61,18 +55,16 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
 					return isMatch;
 				}
+				if (matchingRule.OfType<JProperty>().Any(property => (property).Name == "regex"))
+				{
+					string regex = ((JProperty)matchingRule.First).Value.ToString();
+					var reg = new Regex(regex);
+					var isMatch = reg.IsMatch(((JProperty)actual).Value.ToString());
+					if (!isMatch)
+						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
+					return isMatch;
+				}
 			}
-			//	//matchingRule.IsMatch()
-			//	//if (matchingRule.match == "type")
-			//	//{
-			//	//	if (expected.Type == actual.Type)
-			//	//		return true;
-			//	//}
-			//	//else if (!string.IsNullOrEmpty(matchingRule.regex))
-			//	//{
-
-			//	//}
-			//}
 
 			switch (expected.Type)
 			{
