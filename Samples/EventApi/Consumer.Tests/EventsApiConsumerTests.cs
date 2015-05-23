@@ -47,19 +47,19 @@ namespace Consumer.Tests
 					{
 						new 
 						{
-							eventId = (Matcher)Matcher.TypeEg(Guid.Parse("45D80D13-D5A2-48D7-8353-CBB4C0EAABF5"), TypeMatcher.DataType.String),
+							eventId = new Matcher(Guid.Parse("45D80D13-D5A2-48D7-8353-CBB4C0EAABF5")),
 							timestamp = "2014-06-30T01:37:41.0660548",
 							eventType = "SearchView"
 						},
 						new
 						{
-							eventId = (Matcher)Matcher.RegExEg(Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9"), "[0-9A-F]{36}"),
+							eventId = new Matcher(Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9")),
 							timestamp = "2014-06-30T01:37:52.2618864",
 							eventType = "DetailsView"
 						},
 						new
 						{
-							eventId = (Matcher)Matcher.TypeEg(Guid.Parse("3E83A96B-2A0C-49B1-9959-26DF23F83AEB"), TypeMatcher.DataType.String),
+							eventId = new Matcher(Guid.Parse("3E83A96B-2A0C-49B1-9959-26DF23F83AEB")),
 							timestamp = "2014-06-30T01:38:00.8518952",
 							eventType = "SearchView"
 						}
@@ -137,7 +137,7 @@ namespace Consumer.Tests
 						{
 							uptime = new
 							{
-								href = Matcher.TypeEg("/stats/uptime", TypeMatcher.DataType.String)
+								href = new Matcher("/stats/uptime")
 							}
 						}
 					}
@@ -178,7 +178,7 @@ namespace Consumer.Tests
 						{
 							uptime = new
 							{
-								href = Matcher.TypeEg("/stats/uptime", TypeMatcher.DataType.String)
+								href = new Matcher("/stats/uptime")
 							}
 						}
 					}

@@ -102,6 +102,7 @@
     <Compile Include="Configuration\Json\Converters\LowercaseStringEnumConverter.cs" />
     <Compile Include="Configuration\Json\JsonConfig.cs" />
     <Compile Include="Matchers\Matcher.cs" />
+    <Compile Include="Matchers\MatcherDefinition.cs" />
     <Compile Include="Matchers\TypeMatcher.cs" />
     <Compile Include="Matchers\RegExMatcher.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\HttpStatusCodeComparer.cs" />

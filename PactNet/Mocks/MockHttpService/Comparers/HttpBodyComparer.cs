@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PactNet.Comparers;
+using PactNet.Matchers;
 using PactNet.Mocks.MockHttpService.Models;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
@@ -48,9 +50,36 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
 		private bool AssertPropertyValuesMatch(JToken expected, JToken actual, IDictionary<string, dynamic> matchingRules, ComparisonResult result)
 		{
-			dynamic matchingRule = null;
+			JToken matchingRule = null;
 			if (matchingRules != null && matchingRules.ContainsKey("$." + expected.Path))
-				matchingRule = matchingRules["$." + expected.Path];
+			{
+				matchingRule = JToken.FromObject(matchingRules["$." + expected.Path]);
+
+				foreach (var property in matchingRule)
+				{
+					if (property is JProperty)
+					{
+						if (((JProperty)property).Name == "match")
+						{
+							var isMatch = ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
+							if (!isMatch)
+								result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
+							return isMatch;
+						}
+					}
+				}
+			}
+			//	//matchingRule.IsMatch()
+			//	//if (matchingRule.match == "type")
+			//	//{
+			//	//	if (expected.Type == actual.Type)
+			//	//		return true;
+			//	//}
+			//	//else if (!string.IsNullOrEmpty(matchingRule.regex))
+			//	//{
+
+			//	//}
+			//}
 
 			switch (expected.Type)
 			{

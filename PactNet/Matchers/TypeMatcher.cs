@@ -1,66 +1,47 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿//using System;
+//using Newtonsoft.Json;
 
-namespace PactNet.Matchers
-{
-	public class TypeMatcher : Matcher
-	{
-		public enum DataType
-		{
-			String,
-			Boolean,
-			Number,
-			Object,
-			Array
-		};
+//namespace PactNet.Matchers
+//{
+//	public class TypeMatcher : Matcher
+//	{
+//		[JsonProperty("match")]
+//		public readonly string MATCH = "type";
 
-		public DataType TypeOfData { get; set; }
+//		public TypeMatcher(object example)
+//		{
+//			Example = example;
+//		}
 
-		public TypeMatcher(object example, DataType typeOfData)
-		{
-			Example = example;
-			TypeOfData = typeOfData;
-		}
+//		public bool IsMatch(object input)
+//		{
+//			Type typeOfExample = Example.GetType();
 
-		public override bool Match(object input)
-		{
-			switch (TypeOfData)
-			{
-				case DataType.Array:
-					return input is Array;
-				case DataType.Boolean:
-					return input is bool;
-				case DataType.Number:
-					return input is int;
-				case DataType.Object:
-					return false;
-				case DataType.String:
-					return input is string;
-				default:
-					return false;
-			}
-		}
+//			if (input.GetType() == typeOfExample)
+//				return true;
+//			return false;
+//		}
 
-		public override dynamic ResponseMatchingRule
-		{
-			get
-			{
-				return new
-				{
-					match = "type"
-				};
-			}
-		}
+//		//public override dynamic ResponseMatchingRule
+//		//{
+//		//	get
+//		//	{
+//		//		return new
+//		//		{
+//		//			match = "type"
+//		//		};
+//		//	}
+//		//}
 
-		[JsonProperty(PropertyName = "$type")]
-		public string Name
-		{
-			get { return GetType().FullName; }
-		}
+//		[JsonProperty(PropertyName = "$type")]
+//		public string Name
+//		{
+//			get { return GetType().FullName; }
+//		}
 
-		public static string Type
-		{
-			get { return typeof(TypeMatcher).FullName; }
-		}
-	}
-}
+//		public static string Type
+//		{
+//			get { return typeof(TypeMatcher).FullName; }
+//		}
+//	}
+//}

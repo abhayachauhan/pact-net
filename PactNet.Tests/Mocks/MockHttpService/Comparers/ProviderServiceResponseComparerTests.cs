@@ -560,8 +560,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     new 
                     {
                         myString = "Example Tester",
-                        myInt = 1,
-                        myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C")
+                        myInt = 55,
+                        myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C"),
+						myArray = new[] { "Blah"},
+						myBoolean = false,
+						myObject = new { RandomProperty = 1 }
                     }
                 }
 			};
@@ -575,7 +578,10 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myString = "Tester",
                         myInt = 1,
-                        myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C")
+                        myGuid = Guid.Parse("EEB517E6-AC8B-414A-A0DB-6147EAD9193C"),
+						myArray = new[] { "Random", "String" },
+						myBoolean = true,
+						myObject = new { AnotherProperty = "Test string" }
                     }
                 }
 			};
@@ -584,7 +590,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 			{
 				Body = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myString", new { match = "type"} }
+					{ "$.[0].myString", new { match = "type"} },
+					{ "$.[0].myInt", new { match = "type"} },
+					{ "$.[0].myArray", new { match = "type"} },
+					{ "$.[0].myBoolean", new { match = "type"} },
+					{ "$.[0].myObject", new { match = "type"} }
 				}
 			};
 

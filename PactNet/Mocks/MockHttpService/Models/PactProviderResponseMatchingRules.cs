@@ -12,7 +12,7 @@ namespace PactNet.Mocks.MockHttpService.Models
 
 		public PactProviderResponseMatchingRules()
 		{
-			Body = new ConcurrentDictionary<string, dynamic>();
+			Body = new Dictionary<string, dynamic>();
 		}
 	}
 }
