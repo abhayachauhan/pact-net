@@ -48,7 +48,8 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 			{
 				JToken matchingRule = JToken.FromObject(matchingRules["$." + expected.Path]);
 
-				if (matchingRule.OfType<JProperty>().Any(property => (property).Name == "match"))
+				if (matchingRule.OfType<JProperty>().Any(property =>
+					(property).Name == "match" && property.Value.ToString() == "type"))
 				{
 					var isMatch = ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
 					if (!isMatch)

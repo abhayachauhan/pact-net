@@ -856,5 +856,123 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
+
+		[Fact]
+		public void Compare_WithRegExMatching_WithGuidMatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body =
+					new
+					{
+						myString = "A9526723-C3BC-4A36-ADF8-9AC7CBDCEE52"
+					}
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body =
+					new
+					{
+						myString = "A9526723-C3BC-4A36-ADF8-9AC7CBDCEE52"
+					}
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.myString", new { regex = @"^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.False(result.HasFailure, "There should not be any errors");
+		}
+
+		[Fact]
+		public void Compare_WithRegExMatching_WithIntegerMatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body =
+					new
+					{
+						myInt = 5
+					}
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body =
+					new
+					{
+						myInt = 10
+					}
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.myInt", new { regex = @"^\d+$"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.False(result.HasFailure, "There should not be any errors");
+		}
+
+		[Fact]
+		public void Compare_WithRegExMatching_WithStringMismatch()
+		{
+			var expected = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Example Tester"
+                    }
+                }
+			};
+
+			var actual = new ProviderServiceResponse
+			{
+				Status = 201,
+				Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Another string"
+                    }
+                }
+			};
+
+			var matchingRules = new PactProviderResponseMatchingRules()
+			{
+				Body = new Dictionary<string, dynamic>
+				{
+					{ "$.[0].myString", new { regex = @"[Rr]egex"} }
+				}
+			};
+
+			var comparer = GetSubject();
+
+			var result = comparer.Compare(expected, actual, matchingRules);
+
+			Assert.Equal(result.Failures.Count(), 1);
+		}
 	}
 }
