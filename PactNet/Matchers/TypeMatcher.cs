@@ -1,47 +1,23 @@
-﻿//using System;
-//using Newtonsoft.Json;
+﻿using System.Linq;
+using Newtonsoft.Json.Linq;
 
-//namespace PactNet.Matchers
-//{
-//	public class TypeMatcher : Matcher
-//	{
-//		[JsonProperty("match")]
-//		public readonly string MATCH = "type";
+namespace PactNet.Matchers
+{
+	public class TypeMatcher : IMatcher
+	{
+		public bool IsMatch(JToken expected, JToken actual)
+		{
+			return ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
+		}
 
-//		public TypeMatcher(object example)
-//		{
-//			Example = example;
-//		}
+		public static bool TryParse(JToken json, out TypeMatcher typeMatcher)
+		{
+			typeMatcher = null;
+			if (!json.OfType<JProperty>().Any(property =>
+				(property).Name == "match" && property.Value.ToString() == "type")) return false;
 
-//		public bool IsMatch(object input)
-//		{
-//			Type typeOfExample = Example.GetType();
-
-//			if (input.GetType() == typeOfExample)
-//				return true;
-//			return false;
-//		}
-
-//		//public override dynamic ResponseMatchingRule
-//		//{
-//		//	get
-//		//	{
-//		//		return new
-//		//		{
-//		//			match = "type"
-//		//		};
-//		//	}
-//		//}
-
-//		[JsonProperty(PropertyName = "$type")]
-//		public string Name
-//		{
-//			get { return GetType().FullName; }
-//		}
-
-//		public static string Type
-//		{
-//			get { return typeof(TypeMatcher).FullName; }
-//		}
-//	}
-//}
+			typeMatcher = new TypeMatcher();
+			return true;
+		}
+	}
+}

@@ -3,6 +3,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PactNet.Matchers;
+using PactNet.Matchers.Definition;
 using PactNet.Models;
 
 namespace PactNet.Mocks.MockHttpService.Models
@@ -29,9 +30,9 @@ namespace PactNet.Mocks.MockHttpService.Models
 			if (value.Body is string || value.Body is int || value.Body is bool)
 			{
 			}
-			else if (value.Body is Matcher)
+			else if (value.Body is DefineMatcher)
 			{
-				var matcher = (Matcher)value.Body;
+				var matcher = (DefineMatcher)value.Body;
 
 				MatchingRules = MatchingRules ?? new PactProviderResponseMatchingRules();
 
@@ -74,31 +75,31 @@ namespace PactNet.Mocks.MockHttpService.Models
 		{
 			JProperty item4 = (JProperty)json;
 			if (item4.Name.Equals("$type") &&
-				item4.Value.ToString().Equals(Matcher.Type))
+				item4.Value.ToString().Equals(TypeMatcherDefinition.Type))
 			{
-				var matcher = (Matcher)JsonConvert.DeserializeObject(item4.Parent.ToString(),
-					typeof(Matcher));
+				var matcher = (TypeMatcherDefinition)JsonConvert.DeserializeObject(item4.Parent.ToString(),
+					typeof(TypeMatcherDefinition));
 
 				MatchingRules = MatchingRules ?? new PactProviderResponseMatchingRules();
 				MatchingRules.Body = MatchingRules.Body ?? new Dictionary<string, dynamic>();
 
-				MatchingRules.Body.Add("$." + item4.Parent.Path, new { match = "type" });
+				MatchingRules.Body.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
 
 				body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
 			}
-			//else if (item4.Name.Equals("$type") &&
-			//		 item4.Value.ToString().Equals(TypeMatcher.Type))
-			//{
-			//	var matcher = (TypeMatcher)JsonConvert.DeserializeObject(item4.Parent.ToString(),
-			//		typeof(TypeMatcher));
+			else if (item4.Name.Equals("$type") &&
+					 item4.Value.ToString().Equals(RegExMatcherDefinition.Type))
+			{
+				var matcher = (RegExMatcherDefinition)JsonConvert.DeserializeObject(item4.Parent.ToString(),
+					typeof(RegExMatcherDefinition));
 
-			//	MatchingRules = MatchingRules ?? new PactProviderResponseMatchingRules();
-			//	MatchingRules.Body = MatchingRules.Body ?? new Dictionary<string, Matcher>();
+				MatchingRules = MatchingRules ?? new PactProviderResponseMatchingRules();
+				MatchingRules.Body = MatchingRules.Body ?? new Dictionary<string, dynamic>();
 
-			//	MatchingRules.Body.Add("$." + item4.Parent.Path, matcher);
+				MatchingRules.Body.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
 
-			//	body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
-			//}
+				body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
+			}
 		}
 	}
 }

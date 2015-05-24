@@ -914,7 +914,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 				Body =
 					new
 					{
-						myInt = 10
+						myInt = 12
 					}
 			};
 
@@ -922,7 +922,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 			{
 				Body = new Dictionary<string, dynamic>
 				{
-					{ "$.myInt", new { regex = @"^\d+$"} }
+					{ "$.myInt", new { regex = @"^1[0-9]$"} }
 				}
 			};
 

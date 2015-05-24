@@ -1,8 +1,8 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using PactNet.Matchers;
+using PactNet.Matchers.Definition;
 using PactNet.Mocks.MockHttpService;
 using PactNet.Mocks.MockHttpService.Models;
 using Xunit;
@@ -32,38 +32,96 @@ namespace Consumer.Tests
 					Method = HttpVerb.Get,
 					Path = "/events",
 					Headers = new Dictionary<string, string>
-					{
-						{ "Accept", "application/json" } 
-					}
+                    {
+                        { "Accept", "application/json" }
+                    }
 				})
 				.WillRespondWith(new ProviderServiceResponse
 				{
 					Status = 200,
 					Headers = new Dictionary<string, string>
-					{
-						{ "Content-Type", "application/json; charset=utf-8" }
-					},
+                    {
+                        { "Content-Type", "application/json; charset=utf-8" }
+                    },
 					Body = new[]
-					{
-						new 
-						{
-							eventId = new Matcher(Guid.Parse("45D80D13-D5A2-48D7-8353-CBB4C0EAABF5")),
-							timestamp = "2014-06-30T01:37:41.0660548",
-							eventType = "SearchView"
-						},
-						new
-						{
-							eventId = new Matcher(Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9")),
-							timestamp = "2014-06-30T01:37:52.2618864",
-							eventType = "DetailsView"
-						},
-						new
-						{
-							eventId = new Matcher(Guid.Parse("3E83A96B-2A0C-49B1-9959-26DF23F83AEB")),
-							timestamp = "2014-06-30T01:38:00.8518952",
-							eventType = "SearchView"
-						}
-					}
+                    {
+                        new 
+                        {
+                            eventId = Guid.Parse("45D80D13-D5A2-48D7-8353-CBB4C0EAABF5"),
+                            timestamp = "2014-06-30T01:37:41.0660548",
+                            eventType = "SearchView"
+                        },
+                        new
+                        {
+                            eventId = Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9"),
+                            timestamp = "2014-06-30T01:37:52.2618864",
+                            eventType = "DetailsView"
+                        },
+                        new
+                        {
+                            eventId = Guid.Parse("3E83A96B-2A0C-49B1-9959-26DF23F83AEB"),
+                            timestamp = "2014-06-30T01:38:00.8518952",
+                            eventType = "SearchView"
+                        }
+                    }
+				});
+
+			var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
+
+			//Act
+			var events = consumer.GetAllEvents();
+
+			//Assert
+			Assert.NotEmpty(events);
+			Assert.Equal(3, events.Count());
+
+
+			_mockProviderService.VerifyInteractions();
+		}
+
+		[Fact]
+		public void GetAllEvents_WhenCalled_ReturnsAllEventsWithAnyIds()
+		{
+			//Arrange
+			_mockProviderService.Given("there are three events")
+				.UponReceiving("a request to retrieve all events")
+				.With(new ProviderServiceRequest
+				{
+					Method = HttpVerb.Get,
+					Path = "/events",
+					Headers = new Dictionary<string, string>
+                    {
+                        { "Accept", "application/json" }
+                    }
+				})
+				.WillRespondWith(new ProviderServiceResponse
+				{
+					Status = 200,
+					Headers = new Dictionary<string, string>
+                    {
+                        { "Content-Type", "application/json; charset=utf-8" }
+                    },
+					Body = new[]
+                    {
+                        new 
+                        {
+                            eventId = DefineMatcher.TypeEg(Guid.Parse("45D80D13-D5A2-48D7-8353-CBB4C0EAABF5")),
+                            timestamp = DefineMatcher.RegExEg("2014-06-30T01:37:41.0660548", @"^\d{4}(-|\/)((0[1-9])|(1[0-2]))(-|\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"),
+                            eventType = DefineMatcher.TypeEg("SearchView")
+                        },
+                        new
+                        {
+                            eventId = DefineMatcher.TypeEg(Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9")),
+                            timestamp = DefineMatcher.RegExEg("2014-06-30T01:37:52.2618864", @"^\d{5}(-|\/)((0[1-9])|(1[0-2]))(-|\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"),
+                            eventType = DefineMatcher.TypeEg("DetailsView")
+                        },
+                        new
+                        {
+                            eventId = DefineMatcher.TypeEg(Guid.Parse("3E83A96B-2A0C-49B1-9959-26DF23F83AEB")),
+                            timestamp = DefineMatcher.RegExEg("2014-06-30T01:38:00.8518952", @"^\d{4}(-|\/)((0[1-9])|(1[0-2]))(-|\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"),
+                            eventType = DefineMatcher.TypeEg("SearchView")
+                        }
+                    }
 				});
 
 			var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
@@ -92,12 +150,12 @@ namespace Consumer.Tests
 					Method = HttpVerb.Post,
 					Path = "/events",
 					Headers = new Dictionary<string, string>
-					{
-						{ "Content-Type", "application/json; charset=utf-8" }
-					},
+                    {
+                        { "Content-Type", "application/json; charset=utf-8" }
+                    },
 					Body = new
 					{
-						eventId = eventId,
+						eventId,
 						timestamp = dateTime.ToString("O"),
 						eventType = "DetailsView"
 					}
@@ -137,7 +195,7 @@ namespace Consumer.Tests
 						{
 							uptime = new
 							{
-								href = new Matcher("/stats/uptime")
+								href = "/stats/uptime"
 							}
 						}
 					}
@@ -178,7 +236,7 @@ namespace Consumer.Tests
 						{
 							uptime = new
 							{
-								href = new Matcher("/stats/uptime")
+								href = "/stats/uptime"
 							}
 						}
 					}
@@ -225,17 +283,17 @@ namespace Consumer.Tests
 					Method = HttpVerb.Get,
 					Path = "/events/" + eventId,
 					Headers = new Dictionary<string, string>
-					{
-						{ "Accept", "application/json" }
-					}
+                    {
+                        { "Accept", "application/json" }
+                    }
 				})
 				.WillRespondWith(new ProviderServiceResponse
 				{
 					Status = 200,
 					Headers = new Dictionary<string, string>
-					{
-						{ "Content-Type", "application/json; charset=utf-8" }
-					},
+                    {
+                        { "Content-Type", "application/json; charset=utf-8" }
+                    },
 					Body = new
 					{
 						eventId = eventId
@@ -266,24 +324,24 @@ namespace Consumer.Tests
 					Path = "/events",
 					Query = "type=" + eventType,
 					Headers = new Dictionary<string, string>
-					{
-						{ "Accept", "application/json" }
-					}
+                    {
+                        { "Accept", "application/json" }
+                    }
 				})
 				.WillRespondWith(new ProviderServiceResponse
 				{
 					Status = 200,
 					Headers = new Dictionary<string, string>
-					{
-						{ "Content-Type", "application/json; charset=utf-8" }
-					},
+                    {
+                        { "Content-Type", "application/json; charset=utf-8" }
+                    },
 					Body = new[]
-					{
-						 new
-						 {
-							 eventType = eventType
-						 }
-					}
+                    {
+                         new
+                         {
+                             eventType = eventType
+                         }
+                    }
 				});
 
 			var consumer = new EventsApiClient(_mockProviderServiceBaseUri);
@@ -297,6 +355,4 @@ namespace Consumer.Tests
 			_mockProviderService.VerifyInteractions();
 		}
 	}
-
-
 }

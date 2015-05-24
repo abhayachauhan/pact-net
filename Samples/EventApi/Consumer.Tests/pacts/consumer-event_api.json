@@ -8,7 +8,7 @@
   "interactions": [
     {
       "description": "a request to retrieve all events",
-      "provider_state": "there are events with ids '45D80D13-D5A2-48D7-8353-CBB4C0EAABF5', '83F9262F-28F1-4703-AB1A-8CFD9E8249C9' and '3E83A96B-2A0C-49B1-9959-26DF23F83AEB'",
+      "provider_state": "there are three events",
       "request": {
         "method": "get",
         "path": "/events",
@@ -44,10 +44,28 @@
           "$.[0].eventId": {
             "match": "type"
           },
+          "$.[0].timestamp": {
+            "regex": "^\\d{4}(-|\\/)((0[1-9])|(1[0-2]))(-|\\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"
+          },
+          "$.[0].eventType": {
+            "match": "type"
+          },
           "$.[1].eventId": {
             "match": "type"
           },
+          "$.[1].timestamp": {
+            "regex": "^\\d{5}(-|\\/)((0[1-9])|(1[0-2]))(-|\\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"
+          },
+          "$.[1].eventType": {
+            "match": "type"
+          },
           "$.[2].eventId": {
+            "match": "type"
+          },
+          "$.[2].timestamp": {
+            "regex": "^\\d{4}(-|\\/)((0[1-9])|(1[0-2]))(-|\\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"
+          },
+          "$.[2].eventType": {
             "match": "type"
           }
         }

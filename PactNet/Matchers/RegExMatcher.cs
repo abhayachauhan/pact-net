@@ -1,44 +1,32 @@
-﻿//using System.Text.RegularExpressions;
-//using Newtonsoft.Json;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
-//namespace PactNet.Matchers
-//{
-//	public class RegExMatcher : Matcher
-//	{
-//		[JsonProperty("regex")]
-//		public string RegEx { get; set; }
+namespace PactNet.Matchers
+{
+	public class RegExMatcher : IMatcher
+	{
+		public string RegEx { get; private set; }
 
-//		public RegExMatcher(object example, string regEx)
-//		{
-//			Example = example;
-//			RegEx = regEx;
-//		}
+		public RegExMatcher(string regex)
+		{
+			RegEx = regex;
+		}
 
-//		public bool IsMatch(object input)
-//		{
-//			return Regex.IsMatch(input.ToString(), RegEx);
-//		}
+		public bool IsMatch(JToken expected, JToken actual)
+		{
+			var act = actual as JProperty;
+			return act != null && Regex.IsMatch(act.Value.ToString(), RegEx);
+		}
 
-//		[JsonProperty(PropertyName = "$type")]
-//		public string Name
-//		{
-//			get { return GetType().FullName; }
-//		}
+		public static bool TryParse(JToken json, out RegExMatcher regExMatcher)
+		{
+			regExMatcher = null;
+			if (json.OfType<JProperty>().All(property => (property).Name != "regex")) return false;
 
-//		public static string Type
-//		{
-//			get { return typeof(RegExMatcher).FullName; }
-//		}
-
-//		//public override dynamic ResponseMatchingRule
-//		//{
-//		//	get
-//		//	{
-//		//		return new
-//		//		{
-//		//			regex = RegEx
-//		//		};
-//		//	}
-//		//}
-//	}
-//}
+			string regex = ((JProperty)json.First).Value.ToString();
+			regExMatcher = new RegExMatcher(regex);
+			return true;
+		}
+	}
+}

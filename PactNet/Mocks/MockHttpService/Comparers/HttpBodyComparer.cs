@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using PactNet.Comparers;
+using PactNet.Matchers;
 using PactNet.Mocks.MockHttpService.Models;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
@@ -48,19 +49,19 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 			{
 				JToken matchingRule = JToken.FromObject(matchingRules["$." + expected.Path]);
 
-				if (matchingRule.OfType<JProperty>().Any(property =>
-					(property).Name == "match" && property.Value.ToString() == "type"))
+				TypeMatcher typeMatcher;
+				if (TypeMatcher.TryParse(matchingRule, out typeMatcher))
 				{
-					var isMatch = ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
+					var isMatch = typeMatcher.IsMatch(expected, actual);
 					if (!isMatch)
 						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
 					return isMatch;
 				}
-				if (matchingRule.OfType<JProperty>().Any(property => (property).Name == "regex"))
+
+				RegExMatcher regExMatcher;
+				if (RegExMatcher.TryParse(matchingRule, out regExMatcher))
 				{
-					string regex = ((JProperty)matchingRule.First).Value.ToString();
-					var reg = new Regex(regex);
-					var isMatch = reg.IsMatch(((JProperty)actual).Value.ToString());
+					var isMatch = regExMatcher.IsMatch(expected, actual);
 					if (!isMatch)
 						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
 					return isMatch;

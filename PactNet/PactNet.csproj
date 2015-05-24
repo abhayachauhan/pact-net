@@ -101,10 +101,12 @@
     <Compile Include="Comparers\UnexpectedRequestComparisonFailure.cs" />
     <Compile Include="Configuration\Json\Converters\LowercaseStringEnumConverter.cs" />
     <Compile Include="Configuration\Json\JsonConfig.cs" />
-    <Compile Include="Matchers\Matcher.cs" />
-    <Compile Include="Matchers\MatcherDefinition.cs" />
-    <Compile Include="Matchers\TypeMatcher.cs" />
+    <Compile Include="Matchers\Definition\DefineMatcher.cs" />
+    <Compile Include="Matchers\Definition\RegExMatcherDefinition.cs" />
+    <Compile Include="Matchers\Definition\TypeMatcherDefinition.cs" />
+    <Compile Include="Matchers\IMatcher.cs" />
     <Compile Include="Matchers\RegExMatcher.cs" />
+    <Compile Include="Matchers\TypeMatcher.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\HttpStatusCodeComparer.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\IHttpStatusCodeComparer.cs" />
     <Compile Include="Mocks\MockHttpService\CustomRequestSender.cs" />
