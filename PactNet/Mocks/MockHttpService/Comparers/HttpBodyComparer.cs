@@ -45,23 +45,14 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
 		private bool AssertPropertyValuesMatch(JToken expected, JToken actual, IDictionary<string, dynamic> matchingRules, ComparisonResult result)
 		{
-			if (matchingRules != null && matchingRules.ContainsKey("$." + expected.Path))
+			if (matchingRules != null && matchingRules.ContainsKey(BuildMatchingRulePath(expected.Path)))
 			{
-				JToken matchingRule = JToken.FromObject(matchingRules["$." + expected.Path]);
+				JToken matchingRule = JToken.FromObject(matchingRules[BuildMatchingRulePath(expected.Path)]);
 
-				TypeMatcher typeMatcher;
-				if (TypeMatcher.TryParse(matchingRule, out typeMatcher))
+				Matcher matcher;
+				if (Matcher.TryParse(matchingRule, out matcher))
 				{
-					var isMatch = typeMatcher.IsMatch(expected, actual);
-					if (!isMatch)
-						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
-					return isMatch;
-				}
-
-				RegExMatcher regExMatcher;
-				if (RegExMatcher.TryParse(matchingRule, out regExMatcher))
-				{
-					var isMatch = regExMatcher.IsMatch(expected, actual);
+					var isMatch = matcher.IsMatch(expected, actual);
 					if (!isMatch)
 						result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
 					return isMatch;
@@ -156,6 +147,11 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 			}
 
 			return true;
+		}
+
+		private string BuildMatchingRulePath(string path)
+		{
+			return "$." + path;
 		}
 	}
 }
