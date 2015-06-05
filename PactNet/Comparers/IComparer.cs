@@ -1,6 +1,4 @@
-﻿using PactNet.Mocks.MockHttpService.Models;
-
-namespace PactNet.Comparers
+﻿namespace PactNet.Comparers
 {
     internal interface IComparer<in T>
     {
