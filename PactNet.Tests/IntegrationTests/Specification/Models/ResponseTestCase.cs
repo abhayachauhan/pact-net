@@ -14,7 +14,6 @@ namespace PactNet.Tests.IntegrationTests.Specification.Models
 		public string Comment { get; set; }
 		public ProviderServiceResponse Expected { get; set; }
 		public ProviderServiceResponse Actual { get; set; }
-		public IDictionary<string, dynamic> ResponseMatchingRules { get; set; }
 
 		public ResponseTestCase()
 		{
@@ -23,7 +22,7 @@ namespace PactNet.Tests.IntegrationTests.Specification.Models
 
 		public void Verify()
 		{
-			var result = _responseComparer.Compare(Expected, Actual, ResponseMatchingRules);
+			var result = _responseComparer.Compare(Expected, Actual);
 
 			if (Match)
 			{

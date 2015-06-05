@@ -24,9 +24,6 @@ namespace PactNet.Mocks.MockHttpService.Models
 			}
 		}
 
-		[JsonProperty(PropertyName = "responseMatchingRules")]
-		public IDictionary<string, dynamic> MatchingRules { get; private set; }
-
 		private ProviderServiceResponse CleanOutBodyMatchers(ProviderServiceResponse value)
 		{
 			if (value.Body is string || value.Body is int || value.Body is bool)
@@ -36,9 +33,9 @@ namespace PactNet.Mocks.MockHttpService.Models
 			{
 				var matcher = (DefineMatcher)value.Body;
 
-				MatchingRules = MatchingRules ?? new Dictionary<string, dynamic>();
+				value.ResponseMatchingRules = value.ResponseMatchingRules ?? new Dictionary<string, dynamic>();
 
-				MatchingRules.Add("$.body", matcher);
+				value.ResponseMatchingRules.Add("$.body", matcher);
 
 				value.Body = matcher.Example;
 			}
@@ -47,9 +44,9 @@ namespace PactNet.Mocks.MockHttpService.Models
 				JToken body = JToken.FromObject(value.Body);
 				var bodyClone = body.DeepClone();
 
-				ParseJToken(body, bodyClone);
+				ParseJToken(body, bodyClone, value);
 
-				if (MatchingRules != null && MatchingRules.Any())
+				if (value.ResponseMatchingRules != null && value.ResponseMatchingRules.Any())
 				{
 					value.Body = bodyClone;
 				}
@@ -58,22 +55,22 @@ namespace PactNet.Mocks.MockHttpService.Models
 			return value;
 		}
 
-		private void ParseJToken(JToken json, JToken body)
+		private void ParseJToken(JToken json, JToken body, ProviderServiceResponse response)
 		{
 			if (json is JValue) return;
 
 			foreach (var property in json)
 			{
-				ParseJToken(property, body);
+				ParseJToken(property, body, response);
 			}
 
 			if (json is JProperty)
 			{
-				ParseMatchers(json, body);
+				ParseMatchers(json, body, response);
 			}
 		}
 
-		private void ParseMatchers(JToken json, JToken body)
+		private void ParseMatchers(JToken json, JToken body, ProviderServiceResponse response)
 		{
 			JProperty item4 = (JProperty)json;
 			if (item4.Name.Equals("$type") &&
@@ -82,9 +79,9 @@ namespace PactNet.Mocks.MockHttpService.Models
 				var matcher = (TypeMatcherDefinition)JsonConvert.DeserializeObject(item4.Parent.ToString(),
 					typeof(TypeMatcherDefinition));
 
-				MatchingRules = MatchingRules ?? new Dictionary<string, dynamic>();
+				response.ResponseMatchingRules = response.ResponseMatchingRules ?? new Dictionary<string, dynamic>();
 
-				MatchingRules.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
+				response.ResponseMatchingRules.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
 
 				body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
 			}
@@ -94,9 +91,9 @@ namespace PactNet.Mocks.MockHttpService.Models
 				var matcher = (RegExMatcherDefinition)JsonConvert.DeserializeObject(item4.Parent.ToString(),
 					typeof(RegExMatcherDefinition));
 
-				MatchingRules = MatchingRules ?? new Dictionary<string, dynamic>();
+				response.ResponseMatchingRules = response.ResponseMatchingRules ?? new Dictionary<string, dynamic>();
 
-				MatchingRules.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
+				response.ResponseMatchingRules.Add("$." + item4.Parent.Path, matcher.ResponseMatchingRule);
 
 				body.SelectToken(item4.Parent.Path).Replace(matcher.Example);
 			}

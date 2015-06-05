@@ -131,7 +131,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 
 			validator.Validate(pact, null);
 
-			_mockResponseComparer.Received(0).Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>(), Arg.Any<IDictionary<string, dynamic>>());
+			_mockResponseComparer.Received(0).Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>());
 			_mockHttpRequestSender.Received(0).Send(Arg.Any<ProviderServiceRequest>());
 		}
 
@@ -149,7 +149,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 
 			validator.Validate(pact, null);
 
-			_mockResponseComparer.Received(0).Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>(), Arg.Any<IDictionary<string, dynamic>>());
+			_mockResponseComparer.Received(0).Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>());
 			_mockHttpRequestSender.Received(0).Send(Arg.Any<ProviderServiceRequest>());
 		}
 
@@ -200,7 +200,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 
 			validator.Validate(pact, null);
 
-			_mockResponseComparer.Received(1).Compare(pact.Interactions.First().Response, Arg.Any<ProviderServiceResponse>(), Arg.Any<IDictionary<string, dynamic>>());
+			_mockResponseComparer.Received(1).Compare(pact.Interactions.First().Response, Arg.Any<ProviderServiceResponse>());
 		}
 
 		[Fact]
@@ -222,7 +222,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 			var validator = GetSubject();
 
 			_mockResponseComparer
-				.When(x => x.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>(), Arg.Any<IDictionary<string, dynamic>>()))
+				.When(x => x.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>()))
 				.Do(x => { throw new PactFailureException("Expected response cannot be null"); });
 
 			Assert.Throws<PactFailureException>(() => validator.Validate(pact, null));
@@ -326,7 +326,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 			var validator = GetSubject();
 
 			_mockResponseComparer
-				.When(x => x.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>(), Arg.Any<IDictionary<string, dynamic>>()))
+				.When(x => x.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>()))
 				.Do(x => { throw new PactFailureException("Expected response cannot be null"); });
 
 			Assert.Throws<PactFailureException>(() => validator.Validate(pact, providerStates));
@@ -411,7 +411,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 			var validator = GetSubject();
 
 			_mockResponseComparer
-				.When(x => x.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>(), null))
+				.When(x => x.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>()))
 				.Do(x => { throw new PactFailureException("Expected response cannot be null"); });
 
 			Assert.Throws<PactFailureException>(() => validator.Validate(pact, providerStates));
@@ -578,7 +578,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Validators
 			var validator = GetSubject();
 
 			_mockResponseComparer
-				.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>(), Arg.Any<IDictionary<string, dynamic>>())
+				.Compare(Arg.Any<ProviderServiceResponse>(), Arg.Any<ProviderServiceResponse>())
 				.Returns(comparisonResult);
 
 			Assert.Throws<PactFailureException>(() => validator.Validate(pact, null));

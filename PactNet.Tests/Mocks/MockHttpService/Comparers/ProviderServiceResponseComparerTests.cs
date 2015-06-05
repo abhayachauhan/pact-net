@@ -32,7 +32,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -52,7 +52,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -80,7 +80,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -108,7 +108,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -136,7 +136,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -166,7 +166,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -194,7 +194,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -222,7 +222,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -246,7 +246,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -278,7 +278,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -310,7 +310,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -343,7 +343,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -376,7 +376,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -410,7 +410,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -442,7 +442,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -468,7 +468,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -506,7 +506,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -544,7 +544,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, null);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -566,7 +566,15 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 						myBoolean = false,
 						myObject = new { RandomProperty = 1 }
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[0].myString", new { match = "type"} },
+					{ "$.body[0].myInt", new { match = "type"} },
+					{ "$.body[0].myArray", new { match = "type"} },
+					{ "$.body[0].myBoolean", new { match = "type"} },
+					{ "$.body[0].myObject", new { match = "type"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -586,18 +594,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body[0].myString", new { match = "type"} },
-					{ "$.body[0].myInt", new { match = "type"} },
-					{ "$.body[0].myArray", new { match = "type"} },
-					{ "$.body[0].myBoolean", new { match = "type"} },
-					{ "$.body[0].myObject", new { match = "type"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -614,7 +613,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
 						myObject = new { RandomProperty = 1 }
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[0].myObject", new { match = "type"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -629,14 +632,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body[0].myObject", new { match = "type"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -653,7 +651,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
 						myBoolean = false
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.[0].myBoolean", new { match = "type"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -668,14 +670,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.[0].myBoolean", new { match = "type"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -692,7 +689,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
 						myArray = new[] { "Blah"}
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.[0].myArray", new { match = "type"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -707,14 +708,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.[0].myArray", new { match = "type"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -731,7 +727,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myInt = 55
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.[0].myInt", new { match = "type"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -746,14 +746,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.[0].myInt", new { match = "type"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -770,7 +765,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myString = "Example Tester"
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.[0].myString", new { match = "type"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -785,14 +784,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.[0].myString", new { match = "type"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(1, result.Failures.Count());
 		}
@@ -809,7 +803,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myString = "Example Tester"
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[0].myString", new { regex = @"\w+"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -824,14 +822,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body[0].myString", new { regex = @"\w+"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -846,7 +839,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 					new
 					{
 						myString = "A9526723-C3BC-4A36-ADF8-9AC7CBDCEE52"
-					}
+					},
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.myString", new { regex = @"^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -859,14 +856,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 					}
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.myString", new { regex = @"^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -881,7 +873,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 					new
 					{
 						myInt = 5
-					}
+					},
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.myInt", new { regex = @"^1[0-9]$"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -894,14 +890,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 					}
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.myInt", new { regex = @"^1[0-9]$"} }
-			};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.False(result.HasFailure, "There should not be any errors");
 		}
@@ -918,7 +909,11 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myString = "Example Tester"
                     }
-                }
+                },
+				ResponseMatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body.[0].myString", new { regex = @"[Rr]egex"} }
+				}
 			};
 
 			var actual = new ProviderServiceResponse
@@ -933,14 +928,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new Dictionary<string, dynamic>
-				{
-					{ "$.body.[0].myString", new { regex = @"[Rr]egex"} }
-				};
-
 			var comparer = GetSubject();
 
-			var result = comparer.Compare(expected, actual, matchingRules);
+			var result = comparer.Compare(expected, actual);
 
 			Assert.Equal(result.Failures.Count(), 1);
 		}

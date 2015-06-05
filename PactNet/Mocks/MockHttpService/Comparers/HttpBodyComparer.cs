@@ -153,9 +153,8 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 		private string BuildMatchingRulePath(string path)
 		{
 			const string prepend = "$.body";
-			if (path.StartsWith("["))
-				return prepend + path;
-			return prepend + "." + path;
+			// Refactor this to find a better way to detect if path is an array
+			return string.Format(path.StartsWith("[") ? "{0}{1}" : "{0}.{1}", prepend, path);
 		}
 	}
 }
