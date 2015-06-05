@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using PactNet.Comparers;
+﻿using System.Collections.Generic;
+using System.Linq;
 using PactNet.Mocks.MockHttpService.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
 using Xunit;
@@ -14,6 +14,7 @@ namespace PactNet.Tests.IntegrationTests.Specification.Models
 		public string Comment { get; set; }
 		public ProviderServiceResponse Expected { get; set; }
 		public ProviderServiceResponse Actual { get; set; }
+		public IDictionary<string, dynamic> ResponseMatchingRules { get; set; }
 
 		public ResponseTestCase()
 		{
@@ -22,7 +23,7 @@ namespace PactNet.Tests.IntegrationTests.Specification.Models
 
 		public void Verify()
 		{
-			var result = _responseComparer.Compare(Expected, Actual, null);
+			var result = _responseComparer.Compare(Expected, Actual, ResponseMatchingRules);
 
 			if (Match)
 			{

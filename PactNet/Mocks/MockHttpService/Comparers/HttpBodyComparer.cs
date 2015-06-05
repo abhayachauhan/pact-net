@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 	internal class HttpBodyComparer : IHttpBodyComparer
 	{
 		//TODO: Remove boolean and add "matching" functionality
-		public ComparisonResult Compare(dynamic expected, dynamic actual, PactProviderResponseMatchingRules matchingRules, bool useStrict = false)
+		public ComparisonResult Compare(dynamic expected, dynamic actual, IDictionary<string, dynamic> matchingRules, bool useStrict = false)
 		{
 			var result = new ComparisonResult("has a matching body");
 
@@ -38,7 +39,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 				return result;
 			}
 
-			AssertPropertyValuesMatch(expectedToken, actualToken, matchingRules == null ? null : matchingRules.Body, result);
+			AssertPropertyValuesMatch(expectedToken, actualToken, matchingRules, result);
 
 			return result;
 		}
@@ -151,7 +152,10 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
 		private string BuildMatchingRulePath(string path)
 		{
-			return "$." + path;
+			const string prepend = "$.body";
+			if (path.StartsWith("["))
+				return prepend + path;
+			return prepend + "." + path;
 		}
 	}
 }

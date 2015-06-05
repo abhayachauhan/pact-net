@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,7 +21,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             _httpBodyComparer = new HttpBodyComparer();
         }
 
-        public ComparisonResult Compare(ProviderServiceResponse expected, ProviderServiceResponse actual, PactProviderResponseMatchingRules matchingRules)
+		public ComparisonResult Compare(ProviderServiceResponse expected, ProviderServiceResponse actual, IDictionary<string, dynamic> matchingRules)
         {
             var result = new ComparisonResult("returns a response which");
 

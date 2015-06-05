@@ -67,9 +67,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Models
 				ProviderState = "My provider state",
 			};
 
-			Assert.Equal(interaction.MatchingRules.Body.Keys.Count, 2);
-			Assert.True(interaction.MatchingRules.Body.ContainsKey("$.typematcher"));
-			Assert.True(interaction.MatchingRules.Body.ContainsKey("$.regexmatcher"));
+			Assert.Equal(interaction.MatchingRules.Keys.Count, 2);
+			Assert.True(interaction.MatchingRules.ContainsKey("$.typematcher"));
+			Assert.True(interaction.MatchingRules.ContainsKey("$.regexmatcher"));
 			Assert.True(interaction.Response.Body.typematcher == "it worked");
 			Assert.True(interaction.Response.Body.regexmatcher == 5);
 		}

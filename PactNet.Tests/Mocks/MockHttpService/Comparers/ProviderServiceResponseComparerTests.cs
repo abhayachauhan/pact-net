@@ -586,16 +586,13 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myString", new { match = "type"} },
-					{ "$.[0].myInt", new { match = "type"} },
-					{ "$.[0].myArray", new { match = "type"} },
-					{ "$.[0].myBoolean", new { match = "type"} },
-					{ "$.[0].myObject", new { match = "type"} }
-				}
+					{ "$.body[0].myString", new { match = "type"} },
+					{ "$.body[0].myInt", new { match = "type"} },
+					{ "$.body[0].myArray", new { match = "type"} },
+					{ "$.body[0].myBoolean", new { match = "type"} },
+					{ "$.body[0].myObject", new { match = "type"} }
 			};
 
 			var comparer = GetSubject();
@@ -632,12 +629,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myObject", new { match = "type"} }
-				}
+					{ "$.body[0].myObject", new { match = "type"} }
 			};
 
 			var comparer = GetSubject();
@@ -674,12 +668,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myBoolean", new { match = "type"} }
-				}
+					{ "$.body.[0].myBoolean", new { match = "type"} }
 			};
 
 			var comparer = GetSubject();
@@ -716,12 +707,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myArray", new { match = "type"} }
-				}
+					{ "$.body.[0].myArray", new { match = "type"} }
 			};
 
 			var comparer = GetSubject();
@@ -758,12 +746,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myInt", new { match = "type"} }
-				}
+					{ "$.body.[0].myInt", new { match = "type"} }
 			};
 
 			var comparer = GetSubject();
@@ -800,12 +785,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myString", new { match = "type"} }
-				}
+					{ "$.body.[0].myString", new { match = "type"} }
 			};
 
 			var comparer = GetSubject();
@@ -842,12 +824,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myString", new { regex = @"\w+"} }
-				}
+					{ "$.body[0].myString", new { regex = @"\w+"} }
 			};
 
 			var comparer = GetSubject();
@@ -880,12 +859,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 					}
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.myString", new { regex = @"^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$"} }
-				}
+					{ "$.body.myString", new { regex = @"^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$"} }
 			};
 
 			var comparer = GetSubject();
@@ -918,12 +894,9 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 					}
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.myInt", new { regex = @"^1[0-9]$"} }
-				}
+					{ "$.body.myInt", new { regex = @"^1[0-9]$"} }
 			};
 
 			var comparer = GetSubject();
@@ -960,13 +933,10 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                 }
 			};
 
-			var matchingRules = new PactProviderResponseMatchingRules()
-			{
-				Body = new Dictionary<string, dynamic>
+			var matchingRules = new Dictionary<string, dynamic>
 				{
-					{ "$.[0].myString", new { regex = @"[Rr]egex"} }
-				}
-			};
+					{ "$.body.[0].myString", new { regex = @"[Rr]egex"} }
+				};
 
 			var comparer = GetSubject();
 
