@@ -1,7 +1,5 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
-using PactNet.Matchers;
 
 namespace PactNet.Mocks.MockHttpService.Models
 {
