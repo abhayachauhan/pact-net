@@ -22,7 +22,8 @@ namespace Provider.Api.Web.Tests
                 .ProviderState("there is an event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
                     setUp: InsertEventIntoDatabase)
                 .ProviderState("there is one event with type 'DetailsView'",
-                    setUp: EnsureOneDetailsViewEventExists);
+                    setUp: EnsureOneDetailsViewEventExists)
+                .ProviderState("there are three events");
 
             //Act / Assert
             using (var testServer = TestServer.Create<Startup>())
