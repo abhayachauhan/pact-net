@@ -103,10 +103,12 @@
     <Compile Include="Comparers\UnexpectedRequestComparisonFailure.cs" />
     <Compile Include="Configuration\Json\JsonConfig.cs" />
     <Compile Include="Matchers\Definition\DefineMatcher.cs" />
+    <Compile Include="Matchers\Definition\MinMatcherDefinition.cs" />
     <Compile Include="Matchers\Definition\RegExMatcherDefinition.cs" />
     <Compile Include="Matchers\Definition\TypeMatcherDefinition.cs" />
     <Compile Include="Matchers\IMatcher.cs" />
     <Compile Include="Matchers\RegExMatcher.cs" />
+    <Compile Include="Matchers\MinMatcher.cs" />
     <Compile Include="Matchers\TypeMatcher.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\HttpStatusCodeComparer.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\IHttpStatusCodeComparer.cs" />
@@ -126,7 +128,7 @@
     <Compile Include="Mocks\MockHttpService\Constants.cs" />
     <Compile Include="Mocks\MockHttpService\IHttpHost.cs" />
     <Compile Include="Mocks\MockHttpService\Models\IHttpMessage.cs" />
-    <Compile Include="Mocks\MockHttpService\Models\PactProviderResponseMatchingRules.cs" />
+    <Compile Include="Mocks\MockHttpService\Models\PactProviderMatchingRules.cs" />
     <Compile Include="Mocks\MockHttpService\Nancy\NancyHttpHost.cs" />
     <Compile Include="Mocks\MockHttpService\Nancy\IMockProviderAdminRequestHandler.cs" />
     <Compile Include="Mocks\MockHttpService\Nancy\IMockProviderNancyRequestHandler.cs" />

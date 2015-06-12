@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace PactNet.Matchers.Definition
 {
@@ -9,6 +10,7 @@ namespace PactNet.Matchers.Definition
             Example = example;
         }
 
+        public string Path { get; set; }
         public dynamic Example { get; set; }
 
         [JsonProperty("$type")]
@@ -24,9 +26,24 @@ namespace PactNet.Matchers.Definition
             return new TypeMatcherDefinition(example);
         }
 
+        public static TypeMatcherDefinition AllElementsInArrayTypeEg(object example)
+        {
+            return new TypeMatcherDefinition(new List<dynamic> { example }, "[*]");
+        }
+
+        public static TypeMatcherDefinition MatchTypeToAllPropertiesInObjectEg(object example)
+        {
+            return new TypeMatcherDefinition(example, ".*");
+        }
+
         public static RegExMatcherDefinition RegExEg(object example, string regEx)
         {
             return new RegExMatcherDefinition(example, regEx);
+        }
+
+        public static MinMatcherDefinition MinEg(IEnumerable<dynamic> example, int minimum)
+        {
+            return new MinMatcherDefinition(example, minimum);
         }
     }
 }

@@ -24,6 +24,9 @@ namespace PactNet.Mocks.MockHttpService.Models
         [JsonProperty(PropertyName = "body")]
         public dynamic Body { get; set; }
 
+        [JsonProperty(PropertyName = "matchingRules")]
+        public IDictionary<string, dynamic> MatchingRules { get; set; }
+
         public string PathWithQuery()
         {
             if (String.IsNullOrEmpty(Path) && !String.IsNullOrEmpty(Query))

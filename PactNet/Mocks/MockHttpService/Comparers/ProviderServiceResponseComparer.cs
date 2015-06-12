@@ -47,7 +47,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 var actualResponseBody = JsonConvert.DeserializeObject<JToken>(actualResponseBodyJson);
                 var expectedResponseBody = JsonConvert.DeserializeObject<JToken>(expectedResponseBodyJson);
 
-                var bodyResult = _httpBodyComparer.Compare(expectedResponseBody, actualResponseBody, expected.ResponseMatchingRules);
+                var bodyResult = _httpBodyComparer.Compare(expectedResponseBody, actualResponseBody, expected.MatchingRules);
                 result.AddChildResult(bodyResult);
             }
 

@@ -565,7 +565,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 						myObject = new { RandomProperty = 1 }
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body[0].myString", new { match = "type"} },
 					{ "$.body[0].myInt", new { match = "type"} },
@@ -612,7 +612,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 						myObject = new { RandomProperty = 1 }
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body[0].myObject", new { match = "type"} }
 				}
@@ -650,7 +650,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 						myBoolean = false
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.[0].myBoolean", new { match = "type"} }
 				}
@@ -688,7 +688,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 						myArray = new[] { "Blah"}
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.[0].myArray", new { match = "type"} }
 				}
@@ -726,7 +726,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                         myInt = 55
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.[0].myInt", new { match = "type"} }
 				}
@@ -764,7 +764,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                         myString = "Example Tester"
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.[0].myString", new { match = "type"} }
 				}
@@ -802,7 +802,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                         myString = "Example Tester"
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body[0].myString", new { regex = @"\w+"} }
 				}
@@ -828,6 +828,122 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
         }
 
         [Fact]
+        public void Compare_WithTypeAndWildcardMatching_WithStringMatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[*]", new { match = "type"} }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Another string",
+                    "Should cause failure"
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.False(result.HasFailure, "There should be no errors");
+        }
+
+        [Fact]
+        public void Compare_TypeAndWildcardArrayMatchingWithAdditionalProperty_WithMatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Example Tester"
+                    }
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[*].*", new { match = "type"} }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Another string",
+                        myNumber = 1
+                    },
+                    new 
+                    {
+                        myString = "Another string",
+                        myNumber = 2
+                    }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.False(result.HasFailure, "There should be no errors.");
+        }
+
+        [Fact]
+        public void Compare_WithTypeAndWildcardPropertyMatching_WithMatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Example Tester"
+                    }
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[0].*", new { match = "type"} }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    new 
+                    {
+                        myString = "Another string",
+                        myNumber = 1
+                    }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.False(result.HasFailure, "There should be no errors.");
+        }
+
+        [Fact]
         public void Compare_WithRegExMatching_WithGuidMatch()
         {
             var expected = new ProviderServiceResponse
@@ -838,7 +954,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myString = "A9526723-C3BC-4A36-ADF8-9AC7CBDCEE52"
                     },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.myString", new { regex = @"^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$"} }
 				}
@@ -872,7 +988,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myInt = 5
                     },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.myInt", new { regex = @"^1[0-9]$"} }
 				}
@@ -908,7 +1024,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                         myString = "Example Tester"
                     }
                 },
-                ResponseMatchingRules = new Dictionary<string, dynamic>
+                MatchingRules = new Dictionary<string, dynamic>
 				{
 					{ "$.body.[0].myString", new { regex = @"[Rr]egex"} }
 				}
@@ -923,6 +1039,243 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
                     {
                         myString = "Another string"
                     }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 1);
+        }
+
+        [Fact]
+        public void Compare_WithTypeMatchingWildcards_WithStringMatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester 1"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[*]", new { match = @"type"} }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Another string",
+                    "Example Tester 2",
+                    "Example Tester 3"
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 0);
+        }
+
+        [Fact]
+        public void Compare_WithTypeMatchingWildcards_WithStringMismatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester 1"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body[*]", new { match = @"type"} }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    5
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 1);
+        }
+
+        [Fact]
+        public void Compare_WithTypeMatchingWildcards_WithArrayPropertiesMatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    new
+                    {
+                        First = "Example Tester 1",
+                        Second = "Example Tester 2"
+                    }
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    { "$.body[*].*", new { match = @"type"} }
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    new
+                    {
+                        First = "Another string",
+                        Second = "Another string!!"
+                    }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 0);
+        }
+
+        [Fact]
+        public void Compare_WithMinMatching_WithArrayLengthTooSmallMismatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester 1"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    { "$.body", new { min = 2 } }
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    5
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 1);
+        }
+
+        [Fact]
+        public void Compare_WithMinMatching_WithArrayLengthTooBigMismatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester 1"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    { "$.body", new { min = 2 } }
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    5,
+                    100,
+                    24
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 1);
+        }
+
+        [Fact]
+        public void Compare_WithMinMatching_WithMatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester 1"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body", new { min = 2 } }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    5,
+                    12
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.Equal(result.Failures.Count(), 0);
+        }
+
+        [Fact]
+        public void Compare_WithMinMatching_WithNotArrayMismatch()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new List<dynamic>
+                {
+                    "Example Tester 1"
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+				{
+					{ "$.body", new { min = 2 } }
+				}
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Body = new
+                {
+                    Test = "Random String"
                 }
             };
 

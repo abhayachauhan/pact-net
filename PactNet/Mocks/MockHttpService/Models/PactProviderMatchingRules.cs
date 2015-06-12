@@ -3,12 +3,12 @@ using Newtonsoft.Json;
 
 namespace PactNet.Mocks.MockHttpService.Models
 {
-    public class PactProviderResponseMatchingRules
+    public class PactProviderMatchingRules
     {
         [JsonProperty(PropertyName = "body")]
         public IDictionary<string, dynamic> Body { get; set; }
 
-        public PactProviderResponseMatchingRules()
+        public PactProviderMatchingRules()
         {
             Body = new Dictionary<string, dynamic>();
         }

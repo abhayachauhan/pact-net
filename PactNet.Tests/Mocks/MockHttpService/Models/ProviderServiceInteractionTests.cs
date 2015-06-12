@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Nancy;
+using Newtonsoft.Json.Linq;
 using PactNet.Matchers;
 using PactNet.Matchers.Definition;
 using PactNet.Mocks.MockHttpService.Models;
@@ -60,18 +62,44 @@ namespace PactNet.Tests.Mocks.MockHttpService.Models
                     Body = new
                     {
                         typematcher = DefineMatcher.TypeEg("it worked"),
-                        regexmatcher = DefineMatcher.RegExEg(5, @"^\d+$")
+                        regexmatcher = DefineMatcher.RegExEg(5, @"^\d+$"),
+                        propertyWildcardMatcher = DefineMatcher.MatchTypeToAllPropertiesInObjectEg(new
+                        {
+                            myString = "This is the first string",
+                            myInt = 5,
+                            myBoolean = false,
+                            myObject = new
+                            {
+                                firstProperty = 10,
+                                secondProperty = false
+                            },
+                            myArray = new List<string>
+                            {
+                                "First string",
+                                "Second string"
+                            }
+                        }),
+                        arrayWildcardMatcher = DefineMatcher.AllElementsInArrayTypeEg("List of strings")
                     }
                 },
                 Description = "My description",
                 ProviderState = "My provider state",
             };
 
-            Assert.Equal(interaction.Response.ResponseMatchingRules.Keys.Count, 2);
-            Assert.True(interaction.Response.ResponseMatchingRules.ContainsKey("$.typematcher"));
-            Assert.True(interaction.Response.ResponseMatchingRules.ContainsKey("$.regexmatcher"));
+            Assert.Equal(interaction.Response.MatchingRules.Keys.Count, 4);
+            Assert.True(interaction.Response.MatchingRules.ContainsKey("$.body.typematcher"));
+            Assert.True(interaction.Response.MatchingRules.ContainsKey("$.body.regexmatcher"));
+            Assert.True(interaction.Response.MatchingRules.ContainsKey("$.body.propertyWildcardMatcher.*"));
+            Assert.True(interaction.Response.MatchingRules.ContainsKey("$.body.arrayWildcardMatcher[*]"));
+
             Assert.True(interaction.Response.Body.typematcher == "it worked");
             Assert.True(interaction.Response.Body.regexmatcher == 5);
+            Assert.True(interaction.Response.Body.arrayWildcardMatcher is JArray);
+            Assert.True(interaction.Response.Body.propertyWildcardMatcher is JObject);
+            Assert.Equal(interaction.Response.Body.propertyWildcardMatcher.myString.Value, "This is the first string");
+            Assert.Equal(interaction.Response.Body.propertyWildcardMatcher.myInt.Value, 5);
+            Assert.True(interaction.Response.Body.propertyWildcardMatcher.myObject is JObject);
+            Assert.True(interaction.Response.Body.propertyWildcardMatcher.myArray is JArray);
         }
 
     }

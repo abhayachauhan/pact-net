@@ -6,7 +6,16 @@ namespace PactNet.Matchers
     {
         public override bool IsMatch(JToken expected, JToken actual)
         {
-            return ((JProperty)expected).Value.Type == ((JProperty)actual).Value.Type;
+            var expectedType = TypeOfData(expected);
+            var actualType = TypeOfData(actual);
+            return expectedType == actualType;
+        }
+
+        private JTokenType TypeOfData(JToken token)
+        {
+            if (token is JProperty)
+                return ((JProperty)token).Value.Type;
+            return token.Type;
         }
     }
 }

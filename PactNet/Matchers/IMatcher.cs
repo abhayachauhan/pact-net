@@ -9,6 +9,13 @@ namespace PactNet.Matchers
 
         public static bool TryParse(JToken json, out Matcher matcher)
         {
+            if (json.OfType<JProperty>().Any(property => (property).Name == "min"))
+            {
+                int min = int.Parse(((JProperty)json.First).Value.ToString());
+                matcher = new MinMatcher(min);
+                return true;
+            }
+
             if (json.OfType<JProperty>().Any(property => (property).Name == "regex"))
             {
                 string regex = ((JProperty)json.First).Value.ToString();

@@ -14,7 +14,7 @@ namespace PactNet.Matchers
 
         public override bool IsMatch(JToken expected, JToken actual)
         {
-            var act = actual as JProperty;
+            var act = actual as JValue;
             return act != null && Regex.IsMatch(act.Value.ToString(), RegEx);
         }
     }
