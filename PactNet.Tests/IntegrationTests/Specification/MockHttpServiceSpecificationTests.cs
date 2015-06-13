@@ -63,13 +63,6 @@ namespace PactNet.Tests.IntegrationTests.Specification
                     if (testCaseFileName !=
                         @"..\..\IntegrationTests\Specification\pact-specification\testcases\request\body\array with nested array that matches.json")
                     {
-
-
-
-                        //if (testCaseFileName ==
-                        //    @"..\..\IntegrationTests\Specification\pact-specification\testcases\request\body\array with regular expression in element.json")
-                        //{
-
                         var testCaseJson = File.ReadAllText(testCaseFileName);
                         var testCase = JsonConvert.DeserializeObject<T>(testCaseJson,
                             new JsonSerializerSettings { DateParseHandling = DateParseHandling.None });
@@ -84,7 +77,6 @@ namespace PactNet.Tests.IntegrationTests.Specification
                             failedTestCases.Add(String.Format("[Failed] {0}", testCaseFileName));
 
                         }
-                        //}
                     }
 
                 }

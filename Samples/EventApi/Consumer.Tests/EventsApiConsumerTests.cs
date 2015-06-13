@@ -112,7 +112,7 @@ namespace Consumer.Tests
                         new
                         {
                             eventId = DefineMatcher.TypeEg(Guid.Parse("83F9262F-28F1-4703-AB1A-8CFD9E8249C9")),
-                            timestamp = DefineMatcher.RegExEg("2014-06-30T01:37:52.2618864", @"^\d{5}(-|\/)((0[1-9])|(1[0-2]))(-|\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"),
+                            timestamp = DefineMatcher.RegExEg("2014-06-30T01:37:52.2618864", @"^\d{4}(-|\/)((0[1-9])|(1[0-2]))(-|\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"),
                             eventType = DefineMatcher.TypeEg("DetailsView")
                         },
                         new

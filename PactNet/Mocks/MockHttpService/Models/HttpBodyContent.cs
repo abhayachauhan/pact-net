@@ -87,14 +87,14 @@ namespace PactNet.Mocks.MockHttpService.Models
         {
             if (IsJsonContentType())
             {
-                return JsonConvert.DeserializeObject<dynamic>(content);
+                return JsonConvert.DeserializeObject<dynamic>(content, new JsonSerializerSettings() { DateParseHandling = DateParseHandling.None });
             }
 
             if (IsBinaryContentType())
             {
                 return Encoding.GetBytes(content);
             }
-                
+
             return content;
         }
 

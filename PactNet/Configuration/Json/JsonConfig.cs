@@ -12,7 +12,8 @@ namespace PactNet.Configuration.Json
                 _serializerSettings = _serializerSettings ?? new JsonSerializerSettings
                 {
                     NullValueHandling = NullValueHandling.Ignore,
-                    Formatting = Formatting.Indented
+                    Formatting = Formatting.Indented,
+                    DateParseHandling = DateParseHandling.None
                 };
                 return _serializerSettings;
             }
@@ -26,7 +27,8 @@ namespace PactNet.Configuration.Json
                 _apiRequestSerializerSettings = _apiRequestSerializerSettings ?? new JsonSerializerSettings
                 {
                     NullValueHandling = NullValueHandling.Ignore,
-                    Formatting = Formatting.None
+                    Formatting = Formatting.None,
+                    DateParseHandling = DateParseHandling.None
                 };
                 return _apiRequestSerializerSettings;
             }

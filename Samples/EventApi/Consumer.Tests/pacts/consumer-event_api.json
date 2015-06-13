@@ -7,29 +7,6 @@
   },
   "interactions": [
     {
-      "description": "a request to retrieve events with type 'DetailsView'",
-      "provider_state": "there is one event with type 'DetailsView'",
-      "request": {
-        "method": "get",
-        "path": "/events",
-        "query": "type=DetailsView",
-        "headers": {
-          "Accept": "application/json"
-        }
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        "body": [
-          {
-            "eventType": "DetailsView"
-          }
-        ]
-      }
-    },
-    {
       "description": "a request to retrieve all events",
       "provider_state": "there are events with ids '45D80D13-D5A2-48D7-8353-CBB4C0EAABF5', '83F9262F-28F1-4703-AB1A-8CFD9E8249C9' and '3E83A96B-2A0C-49B1-9959-26DF23F83AEB'",
       "request": {
@@ -61,69 +38,6 @@
             "eventType": "SearchView"
           }
         ]
-      }
-    },
-    {
-      "description": "a request to check the api status",
-      "request": {
-        "method": "get",
-        "path": "/stats/status",
-        "headers": {
-          "Accept": "application/json"
-        }
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        "body": {
-          "alive": true,
-          "_links": {
-            "uptime": {
-              "href": "/stats/uptime"
-            }
-          }
-        }
-      }
-    },
-    {
-      "description": "a request to check the api uptime",
-      "request": {
-        "method": "get",
-        "path": "/stats/uptime",
-        "headers": {
-          "Accept": "application/json"
-        }
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        "body": {
-          "upSince": "2014-06-27T23:51:12Z"
-        }
-      }
-    },
-    {
-      "description": "a request to retrieve event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
-      "provider_state": "there is an event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
-      "request": {
-        "method": "get",
-        "path": "/events/83f9262f-28f1-4703-ab1a-8cfd9e8249c9",
-        "headers": {
-          "Accept": "application/json"
-        }
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        "body": {
-          "eventId": "83f9262f-28f1-4703-ab1a-8cfd9e8249c9"
-        }
       }
     },
     {
@@ -190,7 +104,7 @@
             "match": "type"
           },
           "$.body[1].timestamp": {
-            "regex": "^\\d{5}(-|\\/)((0[1-9])|(1[0-2]))(-|\\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"
+            "regex": "^\\d{4}(-|\\/)((0[1-9])|(1[0-2]))(-|\\/)((0[1-9])|([1-2][0-9])|(3[0-1]))(T|\\s)(([0-1][0-9])|(2[0-3])):([0-5][0-9]):([0-5][0-9])"
           },
           "$.body[1].eventType": {
             "match": "type"
@@ -204,6 +118,92 @@
           "$.body[2].eventType": {
             "match": "type"
           }
+        }
+      }
+    },
+    {
+      "description": "a request to check the api status",
+      "request": {
+        "method": "get",
+        "path": "/stats/status",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "alive": true,
+          "_links": {
+            "uptime": {
+              "href": "/stats/uptime"
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "a request to check the api uptime",
+      "request": {
+        "method": "get",
+        "path": "/stats/uptime",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "upSince": "2014-06-27T23:51:12Z"
+        }
+      }
+    },
+    {
+      "description": "a request to retrieve events with type 'DetailsView'",
+      "provider_state": "there is one event with type 'DetailsView'",
+      "request": {
+        "method": "get",
+        "path": "/events",
+        "query": "type=DetailsView",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": [
+          {
+            "eventType": "DetailsView"
+          }
+        ]
+      }
+    },
+    {
+      "description": "a request to retrieve event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
+      "provider_state": "there is an event with id '83f9262f-28f1-4703-ab1a-8cfd9e8249c9'",
+      "request": {
+        "method": "get",
+        "path": "/events/83f9262f-28f1-4703-ab1a-8cfd9e8249c9",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "eventId": "83f9262f-28f1-4703-ab1a-8cfd9e8249c9"
         }
       }
     }

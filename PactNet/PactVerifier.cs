@@ -24,10 +24,10 @@ namespace PactNet
         public string PactFileUri { get; private set; }
 
         internal PactVerifier(
-            Action setUp, 
+            Action setUp,
             Action tearDown,
             IFileSystem fileSystem,
-            Func<IHttpRequestSender, IProviderServiceValidator> providerServiceValidatorFactory, 
+            Func<IHttpRequestSender, IProviderServiceValidator> providerServiceValidatorFactory,
             HttpClient httpClient)
         {
             _fileSystem = fileSystem;
@@ -44,12 +44,13 @@ namespace PactNet
         /// <param name="consumerName">The name of the consumer being verified.</param>
         /// <param name="setUp">A set up action that will be run before each interaction verify. If no action is required please use an empty lambda () => {}.</param>
         /// <param name="tearDown">A tear down action that will be run after each interaction verify. If no action is required please use an empty lambda () => {}.</param>
-        public PactVerifier(Action setUp, Action tearDown) : this(
-            setUp, 
-            tearDown,
-            new FileSystem(),
-            httpRequestSender => new ProviderServiceValidator(httpRequestSender, new Reporter()),
-            new HttpClient())
+        public PactVerifier(Action setUp, Action tearDown)
+            : this(
+                setUp,
+                tearDown,
+                new FileSystem(),
+                httpRequestSender => new ProviderServiceValidator(httpRequestSender, new Reporter()),
+                new HttpClient())
         {
         }
 
@@ -100,7 +101,7 @@ namespace PactNet
 
             ProviderName = providerName;
             _httpRequestSender = new HttpClientRequestSender(httpClient);
-                
+
             return this;
         }
 
@@ -196,7 +197,7 @@ namespace PactNet
                     pactFileJson = _fileSystem.File.ReadAllText(PactFileUri);
                 }
 
-                pactFile = JsonConvert.DeserializeObject<ProviderServicePactFile>(pactFileJson);
+                pactFile = JsonConvert.DeserializeObject<ProviderServicePactFile>(pactFileJson, new JsonSerializerSettings { DateParseHandling = DateParseHandling.None });
             }
             catch (Exception ex)
             {

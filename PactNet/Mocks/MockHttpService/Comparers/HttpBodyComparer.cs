@@ -31,7 +31,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             var expectedToken = JToken.FromObject(expected, JsonConfig.ComparisonSerializerSettings);
             var actualToken = JToken.FromObject(actual, JsonConfig.ComparisonSerializerSettings);
 
-            if (useStrict)
+            if ((useStrict) && ((matchingRules == null) || (matchingRules.Count == 0)))
             {
                 if (!JToken.DeepEquals(expectedToken, actualToken))
                 {
