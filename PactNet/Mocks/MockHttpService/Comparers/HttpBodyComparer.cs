@@ -1,14 +1,15 @@
-﻿using System.Linq;
-using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using PactNet.Comparers;
+using PactNet.Matchers;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
     internal class HttpBodyComparer : IHttpBodyComparer
     {
         //TODO: Remove boolean and add "matching" functionality
-        public ComparisonResult Compare(dynamic expected, dynamic actual, bool useStrict = false)
+        public ComparisonResult Compare(dynamic expected, dynamic actual, IDictionary<string, dynamic> matchingRules, bool useStrict = false)
         {
             var result = new ComparisonResult("has a matching body");
 
@@ -23,11 +24,8 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 return result;
             }
 
-            //TODO: Maybe look at changing these to JToken.FromObject(...)
-            string expectedJson = JsonConvert.SerializeObject(expected);
-            string actualJson = JsonConvert.SerializeObject(actual);
-            var expectedToken = JsonConvert.DeserializeObject<JToken>(expectedJson);
-            var actualToken = JsonConvert.DeserializeObject<JToken>(actualJson);
+            var expectedToken = JToken.FromObject(expected);
+            var actualToken = JToken.FromObject(actual);
 
             if (useStrict)
             {
@@ -38,28 +36,42 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 return result;
             }
 
-            AssertPropertyValuesMatch(expectedToken, actualToken, result);
+            AssertPropertyValuesMatch(expectedToken, actualToken, matchingRules, result);
 
             return result;
         }
 
-        private bool AssertPropertyValuesMatch(JToken httpBody1, JToken httpBody2, ComparisonResult result)
+        private bool AssertPropertyValuesMatch(JToken expected, JToken actual, IDictionary<string, dynamic> matchingRules, ComparisonResult result)
         {
-            switch (httpBody1.Type)
+            if (matchingRules != null && matchingRules.ContainsKey(BuildMatchingRulePath(expected.Path)))
             {
-                case JTokenType.Array: 
+                JToken matchingRule = JToken.FromObject(matchingRules[BuildMatchingRulePath(expected.Path)]);
+
+                Matcher matcher;
+                if (Matcher.TryParse(matchingRule, out matcher))
+                {
+                    var isMatch = matcher.IsMatch(expected, actual);
+                    if (!isMatch)
+                        result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
+                    return isMatch;
+                }
+            }
+
+            switch (expected.Type)
+            {
+                case JTokenType.Array:
                     {
-                        if (httpBody1.Count() != httpBody2.Count())
+                        if (expected.Count() != actual.Count())
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
 
-                        for (var i = 0; i < httpBody1.Count(); i++)
+                        for (var i = 0; i < expected.Count(); i++)
                         {
-                            if (httpBody2.Count() > i)
+                            if (actual.Count() > i)
                             {
-                                var isMatch = AssertPropertyValuesMatch(httpBody1[i], httpBody2[i], result);
+                                var isMatch = AssertPropertyValuesMatch(expected[i], actual[i], matchingRules, result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -70,13 +82,13 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     }
                 case JTokenType.Object:
                     {
-                        foreach (JProperty item1 in httpBody1)
+                        foreach (JProperty item1 in expected)
                         {
-                            var item2 = httpBody2.Cast<JProperty>().SingleOrDefault(x => x.Name == item1.Name);
+                            var item2 = actual.Cast<JProperty>().SingleOrDefault(x => x.Name == item1.Name);
 
                             if (item2 != null)
                             {
-                                var isMatch = AssertPropertyValuesMatch(item1, item2, result);
+                                var isMatch = AssertPropertyValuesMatch(item1, item2, matchingRules, result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -84,16 +96,16 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                             }
                             else
                             {
-                                result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                                result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                                 return false;
                             }
                         }
                         break;
                     }
-                case JTokenType.Property: 
+                case JTokenType.Property:
                     {
-                        var httpBody2Item = httpBody2.SingleOrDefault();
-                        var httpBody1Item = httpBody1.SingleOrDefault();
+                        var httpBody2Item = actual.SingleOrDefault();
+                        var httpBody1Item = expected.SingleOrDefault();
 
                         if (httpBody2Item == null && httpBody1Item == null)
                         {
@@ -102,30 +114,30 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
                         if (httpBody2Item != null && httpBody1Item != null)
                         {
-                            AssertPropertyValuesMatch(httpBody1Item, httpBody2Item, result);
+                            AssertPropertyValuesMatch(httpBody1Item, httpBody2Item, matchingRules, result);
                         }
                         else
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
                         break;
                     }
                 case JTokenType.Integer:
-                case JTokenType.String: 
+                case JTokenType.String:
                     {
-                        if (!httpBody1.Equals(httpBody2))
+                        if (!expected.Equals(actual))
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
                         break;
                     }
                 default:
                     {
-                        if (!JToken.DeepEquals(httpBody1, httpBody2))
+                        if (!JToken.DeepEquals(expected, actual))
                         {
-                            result.RecordFailure(new DiffComparisonFailure(httpBody1.Root, httpBody2.Root));
+                            result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                             return false;
                         }
                         break;
@@ -133,6 +145,13 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             }
 
             return true;
+        }
+
+        private string BuildMatchingRulePath(string path)
+        {
+            const string prepend = "$.body";
+            // Refactor this to find a better way to detect if path is an array
+            return string.Format(path.StartsWith("[") ? "{0}{1}" : "{0}.{1}", prepend, path);
         }
     }
 }

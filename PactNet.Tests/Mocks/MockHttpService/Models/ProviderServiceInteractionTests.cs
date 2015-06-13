@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Nancy;
+using PactNet.Matchers;
+using PactNet.Matchers.Definition;
 using PactNet.Mocks.MockHttpService.Models;
 using Xunit;
 
@@ -47,5 +49,30 @@ namespace PactNet.Tests.Mocks.MockHttpService.Models
 
             Assert.Equal(expectedInteractionJson, actualInteractionJson);
         }
+
+        [Fact]
+        public void SetResponse_WhenCalled_SplitsOutResponseMatchers()
+        {
+            var interaction = new ProviderServiceInteraction
+            {
+                Response = new ProviderServiceResponse
+                {
+                    Body = new
+                    {
+                        typematcher = DefineMatcher.TypeEg("it worked"),
+                        regexmatcher = DefineMatcher.RegExEg(5, @"^\d+$")
+                    }
+                },
+                Description = "My description",
+                ProviderState = "My provider state",
+            };
+
+            Assert.Equal(interaction.Response.ResponseMatchingRules.Keys.Count, 2);
+            Assert.True(interaction.Response.ResponseMatchingRules.ContainsKey("$.typematcher"));
+            Assert.True(interaction.Response.ResponseMatchingRules.ContainsKey("$.regexmatcher"));
+            Assert.True(interaction.Response.Body.typematcher == "it worked");
+            Assert.True(interaction.Response.Body.regexmatcher == 5);
+        }
+
     }
 }

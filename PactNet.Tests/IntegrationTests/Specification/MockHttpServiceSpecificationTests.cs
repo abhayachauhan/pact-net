@@ -75,7 +75,7 @@ namespace PactNet.Tests.IntegrationTests.Specification
                 }
             }
 
-           return failedTestCases;
+            return failedTestCases;
         }
     }
 }

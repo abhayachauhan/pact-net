@@ -50,7 +50,7 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -102,6 +102,12 @@
     <Compile Include="Comparers\MissingInteractionComparisonFailure.cs" />
     <Compile Include="Comparers\UnexpectedRequestComparisonFailure.cs" />
     <Compile Include="Configuration\Json\JsonConfig.cs" />
+    <Compile Include="Matchers\Definition\DefineMatcher.cs" />
+    <Compile Include="Matchers\Definition\RegExMatcherDefinition.cs" />
+    <Compile Include="Matchers\Definition\TypeMatcherDefinition.cs" />
+    <Compile Include="Matchers\IMatcher.cs" />
+    <Compile Include="Matchers\RegExMatcher.cs" />
+    <Compile Include="Matchers\TypeMatcher.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\HttpStatusCodeComparer.cs" />
     <Compile Include="Mocks\MockHttpService\Comparers\IHttpStatusCodeComparer.cs" />
     <Compile Include="Mocks\MockHttpService\CustomRequestSender.cs" />
@@ -120,6 +126,7 @@
     <Compile Include="Mocks\MockHttpService\Constants.cs" />
     <Compile Include="Mocks\MockHttpService\IHttpHost.cs" />
     <Compile Include="Mocks\MockHttpService\Models\IHttpMessage.cs" />
+    <Compile Include="Mocks\MockHttpService\Models\PactProviderResponseMatchingRules.cs" />
     <Compile Include="Mocks\MockHttpService\Nancy\NancyHttpHost.cs" />
     <Compile Include="Mocks\MockHttpService\Nancy\IMockProviderAdminRequestHandler.cs" />
     <Compile Include="Mocks\MockHttpService\Nancy\IMockProviderNancyRequestHandler.cs" />
@@ -187,6 +194,7 @@
     <Compile Include="Validators\IPactValidator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="PactNet.nuspec" />
   </ItemGroup>

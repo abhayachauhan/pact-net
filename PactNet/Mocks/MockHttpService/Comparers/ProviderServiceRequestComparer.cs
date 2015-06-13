@@ -48,7 +48,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
             if (expected.Body != null)
             {
-                var bodyResult = _httpBodyComparer.Compare(expected.Body, actual.Body, true);
+                var bodyResult = _httpBodyComparer.Compare(expected.Body, actual.Body, null, true);
                 result.AddChildResult(bodyResult);
             }
 

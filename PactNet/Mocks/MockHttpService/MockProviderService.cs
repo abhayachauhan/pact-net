@@ -42,7 +42,7 @@ namespace PactNet.Mocks.MockHttpService
 
         public MockProviderService(int port, bool enableSsl, string providerName, string pactFileDirectory = null)
             : this(
-            baseUri => new NancyHttpHost(baseUri, pactFileDirectory, providerName), 
+            baseUri => new NancyHttpHost(baseUri, pactFileDirectory, providerName),
             port,
             enableSsl,
             baseUri => new HttpClient { BaseAddress = new Uri(baseUri) },
@@ -92,7 +92,7 @@ namespace PactNet.Mocks.MockHttpService
             }
 
             _request = request;
-            
+
             return this;
         }
 
@@ -230,7 +230,7 @@ namespace PactNet.Mocks.MockHttpService
             {
                 var type = stackFrame.GetMethod().ReflectedType;
 
-                if (type == null || 
+                if (type == null ||
                     (type.Assembly.GetName().Name.StartsWith("PactNet", StringComparison.CurrentCultureIgnoreCase) &&
                     !type.Assembly.GetName().Name.Equals("PactNet.Tests", StringComparison.CurrentCultureIgnoreCase)))
                 {
