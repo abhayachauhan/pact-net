@@ -17,7 +17,7 @@ namespace PactNet.Matchers
         {
             if (actual is JArray)
             {
-                return (actual as JArray).Count == Minimum;
+                return (actual as JArray).Count >= Minimum;
             }
             return false;
         }

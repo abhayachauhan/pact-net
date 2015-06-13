@@ -18,7 +18,7 @@ namespace PactNet.Matchers
 
             if (json.OfType<JProperty>().Any(property => (property).Name == "regex"))
             {
-                string regex = ((JProperty)json.First).Value.ToString();
+                string regex = json.OfType<JProperty>().Single(property => (property).Name == "regex").Value.ToString();
                 matcher = new RegExMatcher(regex);
                 return true;
             }

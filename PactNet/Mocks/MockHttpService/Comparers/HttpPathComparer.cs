@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PactNet.Comparers;
 
 namespace PactNet.Mocks.MockHttpService.Comparers

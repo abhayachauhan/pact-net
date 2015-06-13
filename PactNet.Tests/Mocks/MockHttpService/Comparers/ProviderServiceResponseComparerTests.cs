@@ -84,6 +84,138 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
         }
 
         [Fact]
+        public void Compare_WithRegexMatchingHeaders_NoErrorsAreAddedToTheComparisonResult()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    {"Content-Type", "application/json"},
+                    {"Accept", "any string"}
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    {"$.headers.Accept", new { regex = @"\w+" }}
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    { "Accept", "another string" }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.False(result.HasFailure, "There should not be any errors");
+        }
+
+        [Fact]
+        public void Compare_WithTypeMatchingHeaders_NoErrorsAreAddedToTheComparisonResult()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    {"Content-Type", "application/json"}
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    {"$.headers.Content-Type", new { match = "type" }}
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.False(result.HasFailure, "There should not be any errors");
+        }
+
+        [Fact]
+        public void Compare_WithIncorrectRegexMatchingHeaders_ErrorsAreAddedToTheComparisonResult()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    {"Content-Type", "application/json"},
+                    {"Accept", "any string"}
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    {"$.headers.Accept", new { regex = @"\d+" }}
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    { "Accept", "another string" }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.True(result.Failures.Count() == 1, "There should be one error");
+        }
+
+        [Fact]
+        public void Compare_WithRegexMatchingHeadersButWithDifferentCasingOnName_NoErrorsAreAddedToTheComparisonResult()
+        {
+            var expected = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    {"accept", "any string"}
+                },
+                MatchingRules = new Dictionary<string, dynamic>
+                {
+                    {"$.headers.accept", new { regex = @"\w+" }}
+                }
+            };
+
+            var actual = new ProviderServiceResponse
+            {
+                Status = 201,
+                Headers = new Dictionary<string, string>
+                {
+                    { "Accept", "another string" }
+                }
+            };
+
+            var comparer = GetSubject();
+
+            var result = comparer.Compare(expected, actual);
+
+            Assert.False(result.HasFailure, "There should be no errors");
+        }
+
+        [Fact]
         public void Compare_WithMatchingHeadersButWithDifferentCasingOnName_NoErrorsAreAddedToTheComparisonResult()
         {
             var expected = new ProviderServiceResponse
@@ -1188,7 +1320,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
         }
 
         [Fact]
-        public void Compare_WithMinMatching_WithArrayLengthTooBigMismatch()
+        public void Compare_WithMinMatchingArrayPassesMinCheck_WithMinMatch()
         {
             var expected = new ProviderServiceResponse
             {
@@ -1218,7 +1350,7 @@ namespace PactNet.Tests.Mocks.MockHttpService.Comparers
 
             var result = comparer.Compare(expected, actual);
 
-            Assert.Equal(result.Failures.Count(), 1);
+            Assert.False(result.HasFailure, "Should have no errors");
         }
 
         [Fact]

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nancy.ViewEngines;
 using Newtonsoft.Json.Linq;
 using PactNet.Comparers;
+using PactNet.Configuration.Json;
 using PactNet.Matchers;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
     internal class HttpBodyComparer : IHttpBodyComparer
     {
-        private List<string> _matcherPaths = new List<string>();
+        private List<string> _matchedPaths = new List<string>();
 
         //TODO: Remove boolean and add "matching" functionality
         public ComparisonResult Compare(dynamic expected, dynamic actual, IDictionary<string, dynamic> matchingRules, bool useStrict = false)
@@ -28,8 +28,8 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 return result;
             }
 
-            var expectedToken = JToken.FromObject(expected);
-            var actualToken = JToken.FromObject(actual);
+            var expectedToken = JToken.FromObject(expected, JsonConfig.ComparisonSerializerSettings);
+            var actualToken = JToken.FromObject(actual, JsonConfig.ComparisonSerializerSettings);
 
             if (useStrict)
             {
@@ -41,7 +41,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             }
 
             AssertMatchersMatch(expectedToken, actualToken, matchingRules, result);
-            AssertPropertyValuesMatch(expectedToken, actualToken, matchingRules, result);
+            AssertPropertyValuesMatch(expectedToken, actualToken, result);
 
             return result;
         }
@@ -57,22 +57,21 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                 if (!Matcher.TryParse(matchingRule, out matcher))
                     throw new Exception("Invalid Matcher: " + matchingRule);
 
-                JToken newExpected = expected;
+                JToken newExpected = expected.DeepClone();
 
                 if (keyValuePair.Key.Contains("[*]"))
                 {
-                    newExpected = MultiplyExpected(expected, actual, keyValuePair.Key);
+                    newExpected = MultiplyExpected(newExpected, actual, keyValuePair.Key);
                 }
 
                 IEnumerable<JToken> actualTokens = actual.SelectTokens(ConvertPactPathToJsonPath(keyValuePair.Key));
-                IEnumerable<JToken> expectedTokens;
-                expectedTokens = newExpected.SelectTokens(ConvertPactPathToJsonPath(keyValuePair.Key));
+                IEnumerable<JToken> expectedTokens = newExpected.SelectTokens(ConvertPactPathToJsonPath(keyValuePair.Key));
 
                 // If matching on root level array
                 if (keyValuePair.Key.EndsWith("[*]"))
                 {
                     var trimmed = keyValuePair.Key.Replace("[*]", "");
-                    _matcherPaths.Add(trimmed.Replace("$.body", ""));
+                    _matchedPaths.Add(trimmed.Replace("$.body", ""));
                 }
 
                 foreach (var expectedToken in expectedTokens)
@@ -80,45 +79,36 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                     var matchedActualTokens = actualTokens.Where(t => t.Path == expectedToken.Path);
                     foreach (var actualToken in matchedActualTokens)
                     {
-                        _matcherPaths.Add(expectedToken.Path);
+                        _matchedPaths.Add(expectedToken.Path);
 
                         var isMatch = matcher.IsMatch(expectedToken, actualToken);
                         if (isMatch) continue;
                         result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
                     }
                 }
-                //foreach (var token in tokens)
-                //{
-                //    _matcherPaths.Add(token.Path);
-
-                //    var isMatch = matcher.IsMatch(expectedTokens, token);
-                //    if (isMatch) continue;
-                //    result.RecordFailure(new DiffComparisonFailure(expected.Root, actual.Root));
-                //}
             }
         }
 
         private JToken MultiplyExpected(JToken expected, JToken actual, string matchingRule)
         {
-            var expectedClone = expected.DeepClone();
             var jsonPath = ConvertPactPathToJsonPath(matchingRule);
             var preWildcardPath = jsonPath.Substring(0, jsonPath.IndexOf("[*]", StringComparison.Ordinal) + 3);
 
-            _matcherPaths.Add(jsonPath.Substring(0, jsonPath.IndexOf("[*]", StringComparison.Ordinal)));
+            _matchedPaths.Add(jsonPath.Substring(0, jsonPath.IndexOf("[*]", StringComparison.Ordinal)));
 
             var numberOfDuplications = actual.SelectTokens(preWildcardPath).Count();
-            var tokenToDuplicate = expectedClone.SelectToken(preWildcardPath);
+            var tokenToDuplicate = expected.SelectToken(preWildcardPath);
 
             for (int cloneNumber = 0; cloneNumber < numberOfDuplications - 1; cloneNumber++)
             {
                 tokenToDuplicate.AddAfterSelf(tokenToDuplicate.DeepClone());
             }
-            return expectedClone;
+            return expected;
         }
 
-        private bool AssertPropertyValuesMatch(JToken expected, JToken actual, IDictionary<string, dynamic> matchingRules, ComparisonResult result)
+        private bool AssertPropertyValuesMatch(JToken expected, JToken actual, ComparisonResult result)
         {
-            if (_matcherPaths.Contains(expected.Path))
+            if (_matchedPaths.Contains(expected.Path))
                 return true;
 
             switch (expected.Type)
@@ -135,7 +125,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
                         {
                             if (actual.Count() > i)
                             {
-                                var isMatch = AssertPropertyValuesMatch(expected[i], actual[i], matchingRules, result);
+                                var isMatch = AssertPropertyValuesMatch(expected[i], actual[i], result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -152,7 +142,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
                             if (item2 != null)
                             {
-                                var isMatch = AssertPropertyValuesMatch(item1, item2, matchingRules, result);
+                                var isMatch = AssertPropertyValuesMatch(item1, item2, result);
                                 if (!isMatch)
                                 {
                                     break;
@@ -178,7 +168,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
                         if (httpBody2Item != null && httpBody1Item != null)
                         {
-                            AssertPropertyValuesMatch(httpBody1Item, httpBody2Item, matchingRules, result);
+                            AssertPropertyValuesMatch(httpBody1Item, httpBody2Item, result);
                         }
                         else
                         {
@@ -211,18 +201,13 @@ namespace PactNet.Mocks.MockHttpService.Comparers
             return true;
         }
 
-        //private string BuildMatchingRulePath(string path)
-        //{
-        //    const string prepend = "$.body";
-        //    if (path == string.Empty)
-        //        return prepend;
-        //    // Refactor this to find a better way to detect if path is an array
-        //    return string.Format(path.StartsWith("[") ? "{0}{1}" : "{0}.{1}", prepend, path);
-        //}
-
         private string ConvertPactPathToJsonPath(string path)
         {
-            return path.Replace("$.body", "");
+            var removeBody = path.Replace("$.body", "");
+
+            if (removeBody.StartsWith("."))
+                return removeBody.Substring(1, removeBody.Length - 1);
+            return removeBody;
         }
     }
 }

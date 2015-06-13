@@ -42,7 +42,7 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
             if (expected.Headers != null && expected.Headers.Any())
             {
-                var headerResult = _httpHeaderComparer.Compare(expected.Headers, actual.Headers);
+                var headerResult = _httpHeaderComparer.Compare(expected.Headers, actual.Headers, expected.MatchingRules);
                 result.AddChildResult(headerResult);
             }
 

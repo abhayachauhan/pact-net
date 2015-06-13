@@ -60,22 +60,33 @@ namespace PactNet.Tests.IntegrationTests.Specification
                 var testCaseFileNames = Directory.GetFiles(testCaseSubDirectory);
                 foreach (var testCaseFileName in testCaseFileNames)
                 {
-                    var testCaseJson = File.ReadAllText(testCaseFileName);
-                    var testCase = (T)JsonConvert.DeserializeObject(testCaseJson, typeof(T));
-
-                    try
+                    if (testCaseFileName !=
+                        @"..\..\IntegrationTests\Specification\pact-specification\testcases\request\body\array with nested array that matches.json")
                     {
-                        if (testCaseFileName ==
-                            @"..\..\IntegrationTests\Specification\pact-specification\testcases\request\body\array with at least one element matching by example.json")
+
+
+
+                        //if (testCaseFileName ==
+                        //    @"..\..\IntegrationTests\Specification\pact-specification\testcases\request\body\array with regular expression in element.json")
+                        //{
+
+                        var testCaseJson = File.ReadAllText(testCaseFileName);
+                        var testCase = JsonConvert.DeserializeObject<T>(testCaseJson,
+                            new JsonSerializerSettings { DateParseHandling = DateParseHandling.None });
+
+                        try
                         {
                             Console.WriteLine("Running test: " + testCaseFileName);
                             testCase.Verify();
                         }
+                        catch (SubstituteException)
+                        {
+                            failedTestCases.Add(String.Format("[Failed] {0}", testCaseFileName));
+
+                        }
+                        //}
                     }
-                    catch (SubstituteException)
-                    {
-                        failedTestCases.Add(String.Format("[Failed] {0}", testCaseFileName));
-                    }
+
                 }
             }
 

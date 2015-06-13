@@ -3,8 +3,8 @@ using PactNet.Mocks.MockHttpService.Models;
 
 namespace PactNet.Mocks.MockHttpService.Comparers
 {
-    internal interface IProviderServiceResponseComparer : IComparer<ProviderServiceResponse>
+    internal interface IProviderServiceResponseComparer : IBasicComparer<ProviderServiceResponse>
     {
-        ComparisonResult Compare(ProviderServiceResponse expected, ProviderServiceResponse actual);
+        //ComparisonResult Compare(ProviderServiceResponse expected, ProviderServiceResponse actual);
     }
 }

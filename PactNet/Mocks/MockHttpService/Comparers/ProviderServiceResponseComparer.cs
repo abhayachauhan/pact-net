@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using System.Linq;
 using PactNet.Comparers;
 using PactNet.Mocks.MockHttpService.Models;
 
@@ -36,18 +32,13 @@ namespace PactNet.Mocks.MockHttpService.Comparers
 
             if (expected.Headers != null && expected.Headers.Any())
             {
-                var headerResult = _httpHeaderComparer.Compare(expected.Headers, actual.Headers);
+                var headerResult = _httpHeaderComparer.Compare(expected.Headers, actual.Headers, expected.MatchingRules);
                 result.AddChildResult(headerResult);
             }
 
             if (expected.Body != null)
             {
-                string expectedResponseBodyJson = JsonConvert.SerializeObject(expected.Body);
-                string actualResponseBodyJson = JsonConvert.SerializeObject(actual.Body);
-                var actualResponseBody = JsonConvert.DeserializeObject<JToken>(actualResponseBodyJson);
-                var expectedResponseBody = JsonConvert.DeserializeObject<JToken>(expectedResponseBodyJson);
-
-                var bodyResult = _httpBodyComparer.Compare(expectedResponseBody, actualResponseBody, expected.MatchingRules);
+                var bodyResult = _httpBodyComparer.Compare(expected.Body, actual.Body, expected.MatchingRules);
                 result.AddChildResult(bodyResult);
             }
 
